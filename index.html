@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>DREAM HUB - รวมซีรีส์พากย์ไทย</title>
+
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#e50914">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DREAM HUB">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
   <style>
     :root {
       --primary: #e50914;
@@ -38,6 +47,25 @@
       align-items: center;
       gap: 8px;
       cursor: pointer;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .install-btn {
+      display: none;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 2px 8px rgba(229, 9, 20, 0.4);
     }
     .nav-tag {
       background: #262626;
@@ -327,7 +355,10 @@
     <div class="logo" onclick="showCatalog()">
       <span>✨ DREAM HUB</span>
     </div>
-    <div class="nav-tag">5 เรื่อง • 360 ตอนจบ</div>
+    <div class="header-right">
+      <button id="installAppBtn" class="install-btn" onclick="installPWA()">📲 ติดตั้งแอป</button>
+      <div class="nav-tag">5 เรื่อง • 360 ตอนจบ</div>
+    </div>
   </header>
 
   <!-- CATALOG VIEW -->
@@ -378,7 +409,7 @@
   <div id="toast" class="toast"></div>
 
   <script>
-    // Safe storage helper to prevent crash on file:/// protocol in Android Chrome/Samsung Internet
+    // Safe storage helper
     const safeStorage = {
       getItem: (key) => {
         try { return localStorage.getItem(key); } catch(e) { return null; }
@@ -404,6 +435,27 @@
     const nextTimer = document.getElementById('nextTimer');
     const epGrid = document.getElementById('epGrid');
     const toast = document.getElementById('toast');
+    const installAppBtn = document.getElementById('installAppBtn');
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (installAppBtn) installAppBtn.style.display = 'inline-flex';
+    });
+
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choice) => {
+          if (choice.outcome === 'accepted') {
+            installAppBtn.style.display = 'none';
+            showToast('กำลังติดตั้งแอป DREAM HUB...');
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
 
     function showToast(msg) {
       toast.textContent = msg;
@@ -479,7 +531,7 @@
       const ep = currentDrama.episodes[currentEpIndex];
 
       video.src = ep.url;
-      video.load(); // Force browser video reload
+      video.load();
       epIndicator.textContent = 'ตอนที่ ' + ep.number + ' / ' + currentDrama.totalEpisodes;
       prevBtn.disabled = (currentEpIndex === 0);
       nextBtn.disabled = (currentEpIndex === currentDrama.episodes.length - 1);
@@ -528,9 +580,14 @@
       }
     });
 
-    video.addEventListener('error', (e) => {
-      console.warn('Video load error');
-    });
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+          console.log('Service Worker registration skipped:', err);
+        });
+      });
+    }
 
     renderCatalog();
   </script>
