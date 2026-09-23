@@ -1,7 +1,10 @@
-const CACHE_NAME = 'dream-hub-v2';
+const CACHE_NAME = 'dream-hub-v3';
 const ASSETS = [
   './index.html',
   './manifest.json',
+  './logo.png',
+  './logo-cropped.png',
+  './logo-d.png',
   './icon-192.png',
   './icon-512.png'
 ];
