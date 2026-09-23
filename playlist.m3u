@@ -1,5 +1,5 @@
 #EXTM3U
-#PLAYLIST:DREAM HUB - รวมซีรีส์และภาพยนตร์
+#PLAYLIST:DREAM HUB - รวมซีรีส์พากย์ไทย
 
 #EXTINF:-1 tvg-id="drama_2-1" tvg-name="(Dubbing) ข้าเป็นยอดดวงใจท่านอ๋อง แล้วองค์รัชทายาทจะเสียใจทำไม - ตอนที่ 1" tvg-logo="https://img.nartodrama-api.online/poster/112494.jpg" group-title="(Dubbing) ข้าเป็นยอดดวงใจท่านอ๋อง แล้วองค์รัชทายาทจะเสียใจทำไม",(Dubbing) ข้าเป็นยอดดวงใจท่านอ๋อง แล้วองค์รัชทายาทจะเสียใจทำไม - ตอนที่ 1
 https://v-mps.crazymaplestudios.com/vod-112094/40e26aaedf0b71f0bbd136a5e8aa0402/96ba5865ef3e4519a5dbd27323a23382-26b7c03c3e6577af4a0c83bba18d031d-sd.m3u8
@@ -1080,7 +1080,4 @@ https://v-mps.crazymaplestudios.com/vod-112094/f02ebcabafee71f18092e7e7c7690402/
 
 #EXTINF:-1 tvg-id="drama_6-56" tvg-name="(Dubbing) ฝ่าบาท กุ้ยเฟยกลับยุคปัจจุบันแล้ว - ตอนที่ 56" tvg-logo="https://img.nartodrama-api.online/poster/755260.jpg" group-title="(Dubbing) ฝ่าบาท กุ้ยเฟยกลับยุคปัจจุบันแล้ว",(Dubbing) ฝ่าบาท กุ้ยเฟยกลับยุคปัจจุบันแล้ว - ตอนที่ 56
 https://v-mps.crazymaplestudios.com/vod-112094/30661db0afee71f180764176c1c20402/349186a102884a8d82ed9ab4f7ae9ac1-a84600de612f35a0c63591749cf8746c-ld.m3u8
-
-#EXTINF:-1 tvg-id="drama_scandal-1" tvg-name="The Scandal (แผนลวงรักเสน่หา) - ภาพยนตร์เต็มเรื่อง (Full Movie)" tvg-logo="https://pbcdn.aoneroom.com/image/2026/09/14/876fa95f0f03ebdfde01df32676be1fd.jpg" group-title="The Scandal (แผนลวงรักเสน่หา)",The Scandal (แผนลวงรักเสน่หา) - ภาพยนตร์เต็มเรื่อง (Full Movie)
-https://moviebox-hvec-e1.narto-drama.com/hls-h264/7499050641378399408/1/1/index.m3u8
 
