@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.DreamHubCaster" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/cyber_crimson</item>
+        <item name="colorPrimaryVariant">@color/cyber_bg</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/cyber_cyan</item>
+        <item name="android:statusBarColor">@color/cyber_bg</item>
+        <item name="android:navigationBarColor">@color/cyber_bg</item>
+        <item name="android:windowBackground">@color/cyber_bg</item>
+    </style>
+</resources>

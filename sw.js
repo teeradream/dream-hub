@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dream-hub-v8';
+const CACHE_NAME = 'dream-hub-v9';
 const ASSETS = [
   './index.html',
   './manifest.json',

@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DreamHub Caster HUD</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+  <style>
+    :root {
+      --bg-deep: #06080F;
+      --bg-card: rgba(13, 19, 34, 0.88);
+      --bg-glass: rgba(18, 26, 46, 0.72);
+      --neon-cyan: #00F0FF;
+      --neon-crimson: #FF0055;
+      --neon-purple: #9D00FF;
+      --neon-green: #00FF9D;
+      --text-main: #F1F5F9;
+      --text-dim: #94A3B8;
+      --border-cyber: rgba(0, 240, 255, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-deep);
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(0, 240, 255, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 85% 80%, rgba(255, 0, 85, 0.08) 0%, transparent 35%),
+        linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 30px;
+    }
+
+    .hud-section {
+      display: none;
+      padding: 14px;
+      animation: fadeIn 0.22s ease-out;
+    }
+    .hud-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cyber Header Banner */
+    .cyber-header {
+      background: linear-gradient(135deg, rgba(14, 22, 40, 0.95), rgba(8, 12, 24, 0.95));
+      border: 1px solid var(--border-cyber);
+      border-left: 4px solid var(--neon-cyan);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cyber-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+    }
+    .cyber-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+    .cyber-badge {
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+
+    /* Cyber Cards */
+    .cyber-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(10px);
+    }
+    .cyber-card.glow-cyan {
+      border-color: rgba(0, 240, 255, 0.35);
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.12);
+    }
+    .cyber-card.glow-crimson {
+      border-color: rgba(255, 0, 85, 0.4);
+      box-shadow: 0 0 18px rgba(255, 0, 85, 0.14);
+    }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .cyber-btn {
+      flex: 1;
+      min-width: 110px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.18s ease;
+      color: #fff;
+    }
+    .cyber-btn:active {
+      transform: scale(0.96);
+    }
+    .btn-cyan {
+      background: linear-gradient(135deg, #0088aa, #005577);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
+    }
+    .btn-crimson {
+      background: linear-gradient(135deg, #FF0055, #B8003D);
+      border-color: #FF4D88;
+      box-shadow: 0 0 12px rgba(255, 0, 85, 0.3);
+    }
+    .btn-dark {
+      background: #151E32;
+      border-color: #2D3B55;
+      color: var(--text-main);
+    }
+    .btn-green {
+      background: linear-gradient(135deg, #059669, #047857);
+      border-color: var(--neon-green);
+    }
+
+    /* Horizontal Pills */
+    .pill-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      scrollbar-width: none;
+    }
+    .pill-bar::-webkit-scrollbar { display: none; }
+    .cyber-pill {
+      padding: 7px 14px;
+      border-radius: 99px;
+      background: #111827;
+      border: 1px solid #28354E;
+      color: var(--text-dim);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .cyber-pill.active {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
+    }
+
+    /* Inputs */
+    .cyber-input {
+      width: 100%;
+      background: #0D1322;
+      border: 1px solid #26344D;
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+    }
+    .cyber-input:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    }
+
+    /* Preview Video Box */
+    .preview-box {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-cyber);
+      margin-bottom: 12px;
+      position: relative;
+      display: none;
+    }
+    .preview-box.active {
+      display: block;
+    }
+    .preview-box video {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Channel Grid */
+    .channel-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    @media (min-width: 560px) {
+      .channel-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .channel-item {
+      background: rgba(16, 23, 41, 0.9);
+      border: 1px solid #1E293B;
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      transition: border-color 0.2s;
+    }
+    .channel-item:hover, .channel-item:active {
+      border-color: var(--neon-cyan);
+    }
+    .ch-group {
+      font-size: 10px;
+      color: var(--neon-cyan);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .ch-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Remote Deck */
+    .remote-deck {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .remote-btn {
+      background: linear-gradient(145deg, #131C31, #0C1220);
+      border: 1px solid #263554;
+      color: #fff;
+      border-radius: 14px;
+      padding: 16px 8px;
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .remote-btn:active {
+      border-color: var(--neon-cyan);
+      transform: scale(0.95);
+    }
+    .remote-btn.primary {
+      background: linear-gradient(135deg, #FF0055, #990033);
+      border-color: #FF4D88;
+      box-shadow: 0 0 16px rgba(255, 0, 85, 0.35);
+    }
+
+    .url-mono {
+      font-family: monospace;
+      font-size: 11px;
+      color: #64748B;
+      word-break: break-all;
+      margin-top: 4px;
+      background: rgba(0,0,0,0.35);
+      padding: 6px 8px;
+      border-radius: 6px;
+    }
+
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .switch-row:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+  <!-- SHARED MINI VIDEO PREVIEW PLAYER -->
+  <div id="previewContainer" style="padding: 12px 14px 0;">
+    <div id="previewBox" class="preview-box">
+      <video id="previewVideo" controls playsinline></video>
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:#090D16;">
+        <span id="previewTitle" style="font-size:12px; font-weight:700; color:var(--neon-cyan);">กำลังเล่นตัวอย่าง</span>
+        <button class="cyber-btn btn-crimson" style="flex:0; min-width:auto; padding:5px 12px;" onclick="castCurrentPreview()">📺 ยิงขึ้นทีวี</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- SECTION 1: 🎯 VIDEO SNIFFER CENTER                                -->
+  <!-- ================================================================= -->
+  <div id="section-sniffer" class="hud-section active">
+    <div class="cyber-header">
+      <div>
+        <div class="cyber-title">🎯 VIDEO STREAM SNIFFER</div>
+        <div class="cyber-sub">ดักจับไฟล์ .M3U8 / .MP4 อัตโนมัติจากหน้าเว็บ</div>
+      </div>
+      <span class="cyber-badge" id="snifferCountBadge">0 สตรีม</span>
+    </div>
+
+    <!-- Quick Portal Shortcuts -->
+    <div class="cyber-card">
+      <div style="font-size:12px; font-weight:700; color:var(--neon-cyan); margin-bottom:8px;">⚡ ทางลัดเปิดเว็บดูหนัง (พร้อมระบบทะลุบล็อก ISP)</div>
+      <div class="pill-bar" style="margin-bottom:0;">
+        <button class="cyber-pill active" onclick="openSite('https://teeradream.github.io/dream-hub/')">🎬 DreamHub</button>
+        <button class="cyber-pill" onclick="openSite('https://9nung.net/')">🍿 9NUNG</button>
+        <button class="cyber-pill" onclick="openSite('https://www.123-hda.com/')">🎥 123-HDA</button>
+        <button class="cyber-pill" onclick="openSite('https://www.google.com/')">🔍 Google</button>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin: 12px 0 8px;">
+      <span style="font-size:13px; font-weight:700;">รายการวิดีโอที่ตรวจพบในหน้าเว็บ</span>
+      <button class="cyber-pill" onclick="refreshSniffedVideos()">🔄 รีเฟรช</button>
+    </div>
+
+    <div id="sniffedList"></div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- SECTION 2: 📡 IPTV M3U / M3U8 CENTER                              -->
+  <!-- ================================================================= -->
+  <div id="section-iptv" class="hud-section">
+    <div class="cyber-header">
+      <div>
+        <div class="cyber-title">📡 CYBER IPTV CENTER</div>
+        <div class="cyber-sub">ดูทีวีสด & ซีรีส์ M3U8 พร้อมยิงขึ้นจอทีวี</div>
+      </div>
+      <span class="cyber-badge" id="iptvCountBadge">0 ช่อง</span>
+    </div>
+
+    <!-- Playlist Source Selector -->
+    <div class="pill-bar" id="iptvSourceBar">
+      <button class="cyber-pill active" data-src="thaitv" onclick="loadIptvSource('thaitv', this)">⚡ ทีวีดิจิทัลไทยสด</button>
+      <button class="cyber-pill" data-src="dreamhub" onclick="loadIptvSource('dreamhub', this)">🎬 DreamHub (419 ตอน)</button>
+      <button class="cyber-pill" data-src="thailand_cable" onclick="loadIptvSource('thailand_cable', this)">📺 เคเบิลไทย</button>
+      <button class="cyber-pill" data-src="custom" onclick="toggleCustomM3uBox()">➕ เพิ่มเพลย์ลิสต์ M3U</button>
+    </div>
+
+    <!-- Custom M3U Input Drawer -->
+    <div id="customM3uBox" class="cyber-card glow-cyan" style="display:none;">
+      <div style="font-size:13px; font-weight:700; color:var(--neon-cyan); margin-bottom:8px;">➕ นำเข้าเพลย์ลิสต์ M3U / M3U8</div>
+      <input type="text" id="customM3uUrlInput" class="cyber-input" placeholder="วางลิงก์ https://example.com/playlist.m3u">
+      <div class="btn-row">
+        <button class="cyber-btn btn-cyan" onclick="importM3uFromUrl()">🌐 โหลดจาก URL</button>
+        <button class="cyber-btn btn-dark" onclick="document.getElementById('customM3uBox').style.display='none'">ปิด</button>
+      </div>
+    </div>
+
+    <!-- Search & Group Filter -->
+    <input type="text" id="iptvSearchInput" class="cyber-input" placeholder="🔍 ค้นหาชื่อช่อง หรือชื่อเรื่อง..." oninput="renderIptvChannels()" style="margin-bottom:10px;">
+    <div class="pill-bar" id="iptvGroupBar"></div>
+
+    <!-- Channels Grid -->
+    <div class="channel-grid" id="iptvGrid"></div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- SECTION 3: 🎛️ CYBER HUD TV REMOTE & SETTINGS                      -->
+  <!-- ================================================================= -->
+  <div id="section-remote" class="hud-section">
+    <div class="cyber-header">
+      <div>
+        <div class="cyber-title">🎛️ CYBER TV REMOTE & SHIELD</div>
+        <div class="cyber-sub">เชื่อมต่อ Samsung TV / DLNA & ตั้งค่าทะลุบล็อก</div>
+      </div>
+      <span class="cyber-badge" id="activeTvBadge">NO TV</span>
+    </div>
+
+    <!-- 1. TV Discovery Radar -->
+    <div class="cyber-card glow-cyan">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div>
+          <div style="font-size:14px; font-weight:800; color:var(--neon-cyan);">📡 เรดาร์ค้นหา Smart TV (Wi-Fi เดียวกัน)</div>
+          <div style="font-size:11px; color:var(--text-dim);">รองรับ Samsung Smart TV (Tizen), LG webOS, Sony, Android TV</div>
+        </div>
+        <button class="cyber-btn btn-cyan" style="flex:0; min-width:auto; padding:8px 14px;" onclick="scanTvs()">🔍 สแกนหาทีวี</button>
+      </div>
+
+      <div id="tvDeviceList" style="margin-bottom:10px;"></div>
+
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <input type="text" id="manualTvIpInput" class="cyber-input" placeholder="ระบุ IP ทีวีด้วยตนเอง (เช่น 192.168.1.50)">
+        <button class="cyber-btn btn-dark" style="flex:0; min-width:95px;" onclick="addManualTv()">+ เชื่อมต่อ</button>
+      </div>
+    </div>
+
+    <!-- 2. Remote Control Deck -->
+    <div class="cyber-card glow-crimson">
+      <div style="font-size:12px; color:var(--neon-crimson); font-weight:700;">NOW CASTING MONITOR</div>
+      <div id="remoteNowPlaying" style="font-size:15px; font-weight:800; color:#fff; margin:4px 0 2px;">ยังไม่ได้เล่นสตรีม</div>
+      <div style="font-size:11px; color:var(--neon-green);">✅ โหมด Background Service ทำงานอยู่: ล็อกหน้าจอมือถือได้ทันที</div>
+
+      <div class="remote-deck">
+        <button class="remote-btn" onclick="remoteCmd('play')">▶ เล่น (PLAY)</button>
+        <button class="remote-btn primary" onclick="remoteCmd('pause')">⏸ พัก (PAUSE)</button>
+        <button class="remote-btn" onclick="remoteCmd('stop')">⏹ หยุด (STOP)</button>
+        <button class="remote-btn" onclick="remoteSeekOffset(-60)">⏪ -1 นาที</button>
+        <button class="remote-btn" onclick="remoteSeekOffset(-15)">⏪ -15 วิ</button>
+        <button class="remote-btn" onclick="remoteSeekOffset(15)">+15 วิ ⏩</button>
+      </div>
+
+      <!-- Seek To Minute -->
+      <div style="margin-top:10px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+          <span>⏱️ เลื่อนไปนาทีที่ต้องการ (Seek)</span>
+          <span id="seekTimeLabel" style="color:var(--neon-cyan); font-weight:700;">00:00</span>
+        </div>
+        <input type="range" id="seekSlider" min="0" max="7200" value="0" style="width:100%; accent-color:var(--neon-cyan);" oninput="updateSeekLabel(this.value)" onchange="remoteSeekExact(this.value)">
+      </div>
+
+      <!-- Volume Slider -->
+      <div style="margin-top:12px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+          <span>🔊 ระดับเสียงทีวี (TV Volume)</span>
+          <span id="volLabel" style="color:var(--neon-cyan); font-weight:700;">35%</span>
+        </div>
+        <input type="range" min="0" max="100" value="35" style="width:100%; accent-color:var(--neon-crimson);" onchange="remoteSetVol(this.value)" oninput="document.getElementById('volLabel').textContent=this.value+'%'">
+      </div>
+    </div>
+
+    <!-- 3. Cyber Shield (ISP Unblock DoH & AdBlocker) -->
+    <div class="cyber-card">
+      <div style="font-size:14px; font-weight:800; color:var(--neon-cyan); margin-bottom:8px;">🛡️ ระบบทะลุบล็อก ISP & ป้องกันโฆษณา</div>
+
+      <div class="switch-row">
+        <div>
+          <div style="font-size:13px; font-weight:700;">🔓 DNS-over-HTTPS (Cloudflare 1.1.1.1)</div>
+          <div style="font-size:11px; color:var(--text-dim);">เข้าเว็บที่ถูกผู้ให้บริการอินเทอร์เน็ตบล็อกโดยไม่ต้องใช้ VPN</div>
+        </div>
+        <input type="checkbox" id="dohToggle" checked onchange="toggleDoh(this.checked)" style="width:20px; height:20px; accent-color:var(--neon-cyan);">
+      </div>
+
+      <div class="switch-row">
+        <div>
+          <div style="font-size:13px; font-weight:700;">🚫 บล็อกโฆษณา & ป๊อปอัปเว็บหนัง</div>
+          <div style="font-size:11px; color:var(--text-dim);">บล็อกไปแล้ว <span id="blockedCountText" style="color:var(--neon-green); font-weight:700;">0</span> รายการ</div>
+        </div>
+        <input type="checkbox" id="adBlockToggle" checked onchange="toggleAdBlock(this.checked)" style="width:20px; height:20px; accent-color:var(--neon-cyan);">
+      </div>
+
+      <div class="switch-row">
+        <div>
+          <div style="font-size:13px; font-weight:700;">🖧 Local Proxy Relay Server</div>
+          <div style="font-size:11px; color:var(--text-dim);">IP เครื่อง: <span id="lanIpText" style="color:var(--neon-cyan); font-family:monospace;">192.168.x.x:8765</span></div>
+        </div>
+        <span class="cyber-badge" style="color:var(--neon-green); border-color:var(--neon-green);">ONLINE</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allIptvChannels = [];
+    let currentIptvGroup = 'ทั้งหมด';
+    let currentPreviewItem = null;
+    let hlsPreview = null;
+    let estimatedPositionSec = 0;
+
+    function showHudSection(sectionKey) {
+      document.querySelectorAll('.hud-section').forEach(el => el.classList.remove('active'));
+      if (sectionKey === 'iptv') {
+        document.getElementById('section-iptv').classList.add('active');
+        if (allIptvChannels.length === 0) {
+          loadIptvSource('thaitv', document.querySelector('#iptvSourceBar .cyber-pill'));
+        }
+      } else if (sectionKey === 'remote') {
+        document.getElementById('section-remote').classList.add('active');
+        refreshSystemStatus();
+        renderTvDevices();
+      } else {
+        document.getElementById('section-sniffer').classList.add('active');
+        refreshSniffedVideos();
+      }
+    }
+
+    window.onNativeVideoDetected = function(count) {
+      refreshSniffedVideos();
+    };
+
+    function openSite(url) {
+      if (window.NativeBridge) {
+        window.NativeBridge.openUrlInBrowser(url);
+      }
+    }
+
+    // ─── SNIFFER FUNCTIONS ──────────────────────────────────────
+    function refreshSniffedVideos() {
+      if (!window.NativeBridge) return;
+      try {
+        const raw = window.NativeBridge.getSniffedVideosJson();
+        const list = JSON.parse(raw || '[]');
+        document.getElementById('snifferCountBadge').textContent = list.length + ' สตรีม';
+
+        const container = document.getElementById('sniffedList');
+        if (list.length === 0) {
+          container.innerHTML = `
+            <div class="cyber-card" style="text-align:center; padding:28px 16px;">
+              <div style="font-size:28px; margin-bottom:8px;">📡</div>
+              <div style="font-size:14px; font-weight:700; color:#fff;">กำลังดักจับสัญญาณวิดีโอ...</div>
+              <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">
+                เปิดเว็บดูหนังในแท็บ <b>เบราว์เซอร์</b> แล้วกดปุ่มเล่นวิดีโอ<br>ระบบจะดูดลิงก์ .M3U8 / .MP4 มาแสดงที่นี่อัตโนมัติ
+              </div>
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = list.map((v, idx) => `
+          <div class="cyber-card ${idx === 0 ? 'glow-cyan' : ''}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+              <div style="font-size:13px; font-weight:800; color:#fff; line-height:1.35;">${escapeHtml(v.title)}</div>
+              <span class="cyber-badge">${escapeHtml(v.format)}</span>
+            </div>
+            <div class="url-mono">${escapeHtml(v.url)}</div>
+            <div class="btn-row">
+              <button class="cyber-btn btn-crimson" onclick='castStream(${JSON.stringify(v.url)}, ${JSON.stringify(v.title)}, ${JSON.stringify(v.referer)}, false)'>
+                📺 Cast ตรง (ปิดแอปได้)
+              </button>
+              <button class="cyber-btn btn-cyan" onclick='castStream(${JSON.stringify(v.url)}, ${JSON.stringify(v.title)}, ${JSON.stringify(v.referer)}, true)'>
+                🛡️ Cast ผ่าน Proxy
+              </button>
+              <button class="cyber-btn btn-dark" style="flex:0; min-width:80px;" onclick='playInPreview(${JSON.stringify(v.url)}, ${JSON.stringify(v.title)}, ${JSON.stringify(v.referer)})'>
+                ▶ ดูในแอป
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {}
+    }
+
+    // ─── IPTV FUNCTIONS ─────────────────────────────────────────
+    function loadIptvSource(presetName, btnEl) {
+      document.querySelectorAll('#iptvSourceBar .cyber-pill').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      document.getElementById('customM3uBox').style.display = 'none';
+
+      if (!window.NativeBridge) return;
+      try {
+        const json = window.NativeBridge.getIptvPreset(presetName);
+        allIptvChannels = JSON.parse(json || '[]');
+        currentIptvGroup = 'ทั้งหมด';
+        buildIptvGroups();
+        renderIptvChannels();
+      } catch (e) {}
+    }
+
+    function toggleCustomM3uBox() {
+      const box = document.getElementById('customM3uBox');
+      box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function importM3uFromUrl() {
+      const url = document.getElementById('customM3uUrlInput').value.trim();
+      if (!url || !window.NativeBridge) return;
+      try {
+        const json = window.NativeBridge.fetchCustomM3uUrl(url);
+        const parsed = JSON.parse(json || '[]');
+        if (parsed.length > 0) {
+          allIptvChannels = parsed;
+          currentIptvGroup = 'ทั้งหมด';
+          document.getElementById('customM3uBox').style.display = 'none';
+          buildIptvGroups();
+          renderIptvChannels();
+        } else {
+          alert('ไม่พบช่องรายการในลิงก์ที่ระบุ กรุณาตรวจสอบลิงก์ .m3u');
+        }
+      } catch (e) {}
+    }
+
+    function buildIptvGroups() {
+      const groups = ['ทั้งหมด', ...new Set(allIptvChannels.map(c => c.group || 'ทั่วไป'))];
+      const bar = document.getElementById('iptvGroupBar');
+      bar.innerHTML = groups.map(g => `
+        <button class="cyber-pill ${g === currentIptvGroup ? 'active' : ''}" onclick='selectIptvGroup(${JSON.stringify(g)})'>
+          ${escapeHtml(g)}
+        </button>
+      `).join('');
+    }
+
+    function selectIptvGroup(g) {
+      currentIptvGroup = g;
+      buildIptvGroups();
+      renderIptvChannels();
+    }
+
+    function renderIptvChannels() {
+      const q = (document.getElementById('iptvSearchInput').value || '').toLowerCase().trim();
+      const filtered = allIptvChannels.filter(c => {
+        const matchGroup = (currentIptvGroup === 'ทั้งหมด') || (c.group === currentIptvGroup);
+        const matchQuery = !q || c.name.toLowerCase().includes(q) || (c.group && c.group.toLowerCase().includes(q));
+        return matchGroup && matchQuery;
+      });
+
+      document.getElementById('iptvCountBadge').textContent = filtered.length + ' ช่อง';
+      const grid = document.getElementById('iptvGrid');
+      const slice = filtered.slice(0, 120); // Fast DOM rendering
+
+      grid.innerHTML = slice.map(ch => `
+        <div class="channel-item">
+          <div>
+            <div class="ch-group">${escapeHtml(ch.group)}</div>
+            <div class="ch-name">${escapeHtml(ch.name)}</div>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:4px;">
+            <button class="cyber-btn btn-cyan" style="padding:7px 8px; min-width:auto; font-size:11px;" onclick='playInPreview(${JSON.stringify(ch.url)}, ${JSON.stringify(ch.name)}, "")'>
+              ▶ ดูสด
+            </button>
+            <button class="cyber-btn btn-crimson" style="padding:7px 8px; min-width:auto; font-size:11px;" onclick='castStream(${JSON.stringify(ch.url)}, ${JSON.stringify(ch.name)}, "", false)'>
+              📺 Cast
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ─── PREVIEW PLAYER ─────────────────────────────────────────
+    function playInPreview(url, title, referer) {
+      currentPreviewItem = { url, title, referer };
+      const box = document.getElementById('previewBox');
+      const video = document.getElementById('previewVideo');
+      document.getElementById('previewTitle').textContent = title;
+      box.classList.add('active');
+
+      if (hlsPreview) {
+        hlsPreview.destroy();
+        hlsPreview = null;
+      }
+
+      if (url.toLowerCase().includes('.m3u8') && typeof Hls !== 'undefined' && Hls.isSupported()) {
+        hlsPreview = new Hls();
+        hlsPreview.loadSource(url);
+        hlsPreview.attachMedia(video);
+        hlsPreview.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+      } else {
+        video.src = url;
+        video.play().catch(() => {});
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function castCurrentPreview() {
+      if (!currentPreviewItem) return;
+      castStream(currentPreviewItem.url, currentPreviewItem.title, currentPreviewItem.referer || '', false);
+    }
+
+    // ─── CAST & REMOTE FUNCTIONS ────────────────────────────────
+    function castStream(url, title, referer, useProxy) {
+      if (!window.NativeBridge) return;
+      const ok = window.NativeBridge.castVideo(url, title, referer || '', !!useProxy);
+      if (ok) {
+        showHudSection('remote');
+      }
+    }
+
+    function scanTvs() {
+      if (!window.NativeBridge) return;
+      document.getElementById('tvDeviceList').innerHTML = `<div style="font-size:12px; color:var(--neon-cyan); padding:8px;">📡 กำลังส่งคลื่นเรดาร์ค้นหา Smart TV ในวง Wi-Fi...</div>`;
+      setTimeout(() => {
+        window.NativeBridge.scanTvDevices();
+        renderTvDevices();
+        refreshSystemStatus();
+      }, 150);
+    }
+
+    function addManualTv() {
+      const ip = document.getElementById('manualTvIpInput').value.trim();
+      if (!ip || !window.NativeBridge) return;
+      window.NativeBridge.addManualTvIp(ip);
+      renderTvDevices();
+      refreshSystemStatus();
+    }
+
+    function renderTvDevices() {
+      if (!window.NativeBridge) return;
+      try {
+        const list = JSON.parse(window.NativeBridge.getTvDevicesJson() || '[]');
+        const box = document.getElementById('tvDeviceList');
+        if (list.length === 0) {
+          box.innerHTML = `<div style="font-size:12px; color:var(--text-dim); padding:6px 0;">ยังไม่พบทีวี กดปุ่ม "🔍 สแกนหาทีวี" หรือพิมพ์ IP ทีวีด้านล่าง</div>`;
+          return;
+        }
+        box.innerHTML = list.map(d => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:10px; margin-bottom:6px; background:${d.isActive ? 'rgba(0,240,255,0.14)' : '#0E1525'}; border:1px solid ${d.isActive ? 'var(--neon-cyan)' : '#223049'};" onclick='selectTv(${JSON.stringify(d.id)})'>
+            <div>
+              <div style="font-size:13px; font-weight:800; color:#fff;">📺 ${escapeHtml(d.name)}</div>
+              <div style="font-size:11px; color:var(--text-dim);">${escapeHtml(d.manufacturer)} • IP: ${escapeHtml(d.ipAddress)}</div>
+            </div>
+            <span class="cyber-badge">${d.isActive ? 'เชื่อมต่ออยู่' : 'เลือก'}</span>
+          </div>
+        `).join('');
+      } catch (e) {}
+    }
+
+    function selectTv(id) {
+      if (!window.NativeBridge) return;
+      window.NativeBridge.selectTvDevice(id);
+      renderTvDevices();
+      refreshSystemStatus();
+    }
+
+    function remoteCmd(cmd) {
+      if (!window.NativeBridge) return;
+      if (cmd === 'play') window.NativeBridge.remotePlayPause(true);
+      else if (cmd === 'pause') window.NativeBridge.remotePlayPause(false);
+      else if (cmd === 'stop') window.NativeBridge.remoteStop();
+      refreshSystemStatus();
+    }
+
+    function remoteSeekOffset(deltaSec) {
+      estimatedPositionSec = Math.max(0, estimatedPositionSec + deltaSec);
+      document.getElementById('seekSlider').value = estimatedPositionSec;
+      updateSeekLabel(estimatedPositionSec);
+      if (window.NativeBridge) window.NativeBridge.remoteSeek(estimatedPositionSec);
+    }
+
+    function remoteSeekExact(sec) {
+      estimatedPositionSec = parseInt(sec, 10) || 0;
+      if (window.NativeBridge) window.NativeBridge.remoteSeek(estimatedPositionSec);
+    }
+
+    function updateSeekLabel(sec) {
+      const s = parseInt(sec, 10) || 0;
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const rem = s % 60;
+      document.getElementById('seekTimeLabel').textContent =
+        (h > 0 ? h + ':' : '') + (m < 10 ? '0' : '') + m + ':' + (rem < 10 ? '0' : '') + rem;
+    }
+
+    function remoteSetVol(v) {
+      if (window.NativeBridge) window.NativeBridge.remoteVolume(parseInt(v, 10) || 30);
+    }
+
+    function toggleDoh(enabled) {
+      if (window.NativeBridge) window.NativeBridge.setDohConfig(enabled, 'cloudflare');
+    }
+
+    function toggleAdBlock(enabled) {
+      if (window.NativeBridge) window.NativeBridge.setAdBlockEnabled(enabled);
+    }
+
+    function refreshSystemStatus() {
+      if (!window.NativeBridge) return;
+      try {
+        const st = JSON.parse(window.NativeBridge.getSystemStatusJson());
+        document.getElementById('dohToggle').checked = !!st.dohEnabled;
+        document.getElementById('adBlockToggle').checked = !!st.adBlockEnabled;
+        document.getElementById('blockedCountText').textContent = st.blockedAdsCount || 0;
+        document.getElementById('lanIpText').textContent = (st.lanIp || '127.0.0.1') + ':8765';
+        document.getElementById('activeTvBadge').textContent = st.activeTvName || 'NO TV';
+        document.getElementById('remoteNowPlaying').textContent = st.currentStreamTitle || 'พร้อมส่งสตรีมขึ้นทีวี';
+      } catch (e) {}
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Initial load
+    setTimeout(() => {
+      refreshSniffedVideos();
+      refreshSystemStatus();
+    }, 300);
+  </script>
+</body>
+</html>

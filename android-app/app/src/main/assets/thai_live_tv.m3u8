@@ -1,0 +1,49 @@
+#EXTM3U
+
+# ========================================================
+# 1. วิดีโอทดสอบสตรีมมิ่ง (Test Streams - สัญญาณเสถียร 100%)
+# ========================================================
+
+#EXTINF:-1 tvg-name="Big Buck Bunny (1080p)" group-title="Test Streams", Big Buck Bunny (1080p Test)
+https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+
+#EXTINF:-1 tvg-name="Apple HLS Test Stream" group-title="Test Streams", Apple HLS Advanced Test
+https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8
+
+#EXTINF:-1 tvg-name="Tears of Steel" group-title="Test Streams", Tears of Steel (Sci-Fi Test)
+https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8
+
+
+# ========================================================
+# 2. ช่องทีวีไทย (Thai TV Channels - Public Live Streams)
+# ========================================================
+
+#EXTINF:-1 tvg-id="3HD.th@SD" tvg-name="3 HD" group-title="Thai TV", 3 HD
+https://live-us1.thaimomo.com/live-as/ch3hd-3/playlist.m3u8
+
+#EXTINF:-1 tvg-id="ThaiPBS.th@SD" tvg-name="Thai PBS" group-title="Thai TV", Thai PBS
+https://live-us1.thaimomo.com/live-as/chThaipbshd-2/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TopNews.th@SD" tvg-name="Top News" group-title="Thai TV", Top News
+https://live.topnews.co.th/hls/topnews_a_720.m3u8
+
+#EXTINF:-1 tvg-id="NationTV.th@SD" tvg-name="Nation TV" group-title="Thai TV", Nation TV
+https://live-us1.thaimomo.com/live-as/chNation-3/playlist.m3u8
+
+#EXTINF:-1 tvg-id="ThaiParliamentTelevision.th@SD" tvg-name="TP Channel" group-title="Thai TV", Thai Parliament TV (วิทยุรัฐสภา)
+https://tv-live.tpchannel.org/live/tv.m3u8
+
+#EXTINF:-1 tvg-id="True4U.th@SD" tvg-name="True4U" group-title="Thai TV", True4U
+https://live-us1.thaimomo.com/live-as/chTrue4u-2/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TSports7.th@SD" tvg-name="T Sports 7" group-title="Thai TV", T Sports 7
+https://live-us1.thaimomo.com/live-as/chtsport-1/playlist.m3u8
+
+#EXTINF:-1 tvg-id="DLTV1.th@SD" tvg-name="DLTV 1" group-title="Education", DLTV 1 (ประถมศึกษาปีที่ 1)
+https://cdn-live.dltv.ac.th/dltv01.m3u8
+
+#EXTINF:-1 tvg-id="DLTV2.th@SD" tvg-name="DLTV 2" group-title="Education", DLTV 2 (ประถมศึกษาปีที่ 2)
+https://cdn-live.dltv.ac.th/dltv02.m3u8
+
+#EXTINF:-1 tvg-id="DLTV3.th@SD" tvg-name="DLTV 3" group-title="Education", DLTV 3 (ประถมศึกษาปีที่ 3)
+https://cdn-live.dltv.ac.th/dltv03.m3u8
