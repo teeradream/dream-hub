@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dream-hub-v7';
+const CACHE_NAME = 'dream-hub-v8';
 const ASSETS = [
   './index.html',
   './manifest.json',
@@ -6,7 +6,8 @@ const ASSETS = [
   './logo-cropped.png',
   './logo-d.png',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './poster_terminal_list_s2.webp'
 ];
 
 self.addEventListener('install', (e) => {
@@ -29,7 +30,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
-  if (url.pathname.includes('.mp4') || url.pathname.includes('.m3u8') || url.hostname.includes('dramabox-stream') || url.hostname.includes('moviebox')) {
+  if (url.pathname.includes('.mp4') || url.pathname.includes('.m3u8') || url.pathname.includes('.ts') || url.hostname.includes('mvshd') || url.hostname.includes('dramabox-stream') || url.hostname.includes('moviebox')) {
     return;
   }
 
