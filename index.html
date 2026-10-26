@@ -817,6 +817,27 @@
   <div id="toast" class="toast"></div>
 
   <script>
+    // 🎬 DOM ELEMENTS
+    const video = document.getElementById('videoPlayer');
+    const catalogView = document.getElementById('catalogView');
+    const playerView = document.getElementById('playerView');
+    const dramaGrid = document.getElementById('dramaGrid');
+    const continueBanner = document.getElementById('continueBanner');
+    const continueDramaTitle = document.getElementById('continueDramaTitle');
+    const continueEpInfo = document.getElementById('continueEpInfo');
+    const nowTitle = document.getElementById('nowTitle');
+    const epIndicator = document.getElementById('epIndicator');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const autoNextToggle = document.getElementById('autoNextToggle');
+    const nextTimer = document.getElementById('nextTimer');
+    const epGrid = document.getElementById('epGrid');
+    const toast = document.getElementById('toast');
+    // castBtn declared at top
+    // castingBanner declared at top
+    // castDeviceName declared at top
+    // castPlayPauseBtn declared at top
+
     // 🎬 SPLASH SCREEN CONTROLLER
     let splashDismissed = false;
     function dismissSplash() {
@@ -1092,22 +1113,7 @@
     let resumeTimePending = 0;
     let hlsInstance = null;
 
-    const catalogView = document.getElementById('catalogView');
-    const playerView = document.getElementById('playerView');
-    const dramaGrid = document.getElementById('dramaGrid');
-    const continueBanner = document.getElementById('continueBanner');
-    const continueDramaTitle = document.getElementById('continueDramaTitle');
-    const continueEpInfo = document.getElementById('continueEpInfo');
-
-    const video = document.getElementById('videoPlayer');
-    const nowTitle = document.getElementById('nowTitle');
-    const epIndicator = document.getElementById('epIndicator');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const autoNextToggle = document.getElementById('autoNextToggle');
-    const nextTimer = document.getElementById('nextTimer');
-    const epGrid = document.getElementById('epGrid');
-    const toast = document.getElementById('toast');
+    // (DOM elements declared at top of script)
     const installAppBtn = document.getElementById('installAppBtn');
 
     let deferredPrompt = null;
