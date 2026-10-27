@@ -96,16 +96,16 @@ class CastForegroundService : Service() {
 
         val tvName = DlnaCaster.activeDevice?.name ?: "Smart TV"
         val title = DlnaCaster.currentStreamTitle.ifBlank { "กำลังส่งสตรีมวิดีโอขึ้นทีวี" }
-        val playPauseLabel = if (DlnaCaster.isPlaying) "⏸ พักการเล่น" else "▶ เล่นต่อ"
+        val playPauseLabel = if (DlnaCaster.isPlaying) "พักการเล่น" else "เล่นต่อ"
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_media_play)
-            .setContentTitle("📺 Cast: $tvName")
-            .setContentText("$title • ปิดหน้าจอมือถือได้")
+            .setContentTitle("กำลังแคสต์: $tvName")
+            .setContentText("$title • ล็อกหน้าจอมือถือได้")
             .setOngoing(true)
             .setContentIntent(openPending)
             .addAction(android.R.drawable.ic_media_pause, playPauseLabel, togglePending)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "⏹ หยุด Cast", stopPending)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "หยุดแคสต์", stopPending)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
     }

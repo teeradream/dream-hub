@@ -1,806 +1,1731 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>DreamHub Caster HUD</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DreamHub Caster — Liquid Glass</title>
   <style>
     :root {
-      --bg-deep: #06080F;
-      --bg-card: rgba(13, 19, 34, 0.88);
-      --bg-glass: rgba(18, 26, 46, 0.72);
-      --neon-cyan: #00F0FF;
-      --neon-crimson: #FF0055;
-      --neon-purple: #9D00FF;
-      --neon-green: #00FF9D;
-      --text-main: #F1F5F9;
-      --text-dim: #94A3B8;
-      --border-cyber: rgba(0, 240, 255, 0.25);
+      --bg-deep: #060911;
+      --bg-surface: #0b1120;
+      --glass-bg: rgba(255, 255, 255, 0.07);
+      --glass-border: rgba(255, 255, 255, 0.14);
+      --glass-highlight: rgba(255, 255, 255, 0.24);
+      --accent-sky: #38bdf8;
+      --accent-emerald: #10b981;
+      --accent-amber: #facc15;
+      --accent-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
     }
 
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     body {
-      background-color: var(--bg-deep);
-      background-image:
-        radial-gradient(circle at 15% 15%, rgba(0, 240, 255, 0.08) 0%, transparent 35%),
-        radial-gradient(circle at 85% 80%, rgba(255, 0, 85, 0.08) 0%, transparent 35%),
-        linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-      background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
-      color: var(--text-main);
+      margin: 0;
+      padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at 18% 12%, #13203a 0%, #070a12 60%, #04060b 100%);
+      color: var(--text-main);
       min-height: 100vh;
       overflow-x: hidden;
-      padding-bottom: 30px;
     }
 
-    .hud-section {
-      display: none;
-      padding: 14px;
+    /* Liquid Glass Surfaces */
+    .liquid-glass {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%);
+      backdrop-filter: blur(22px) saturate(180%);
+      -webkit-backdrop-filter: blur(22px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      border-radius: 18px;
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .liquid-glass:active {
+      transform: scale(0.985);
+    }
+
+    .liquid-glass-verified {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(14, 165, 233, 0.08) 100%);
+      backdrop-filter: blur(22px) saturate(190%);
+      -webkit-backdrop-filter: blur(22px) saturate(190%);
+      border: 1.5px solid rgba(52, 211, 153, 0.65);
+      box-shadow: 0 10px 28px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      border-radius: 18px;
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .liquid-header {
+      background: linear-gradient(180deg, rgba(16, 24, 42, 0.92) 0%, rgba(10, 15, 28, 0.95) 100%);
+      backdrop-filter: blur(26px);
+      -webkit-backdrop-filter: blur(26px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .liquid-pill {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      color: var(--text-main);
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .liquid-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 6, 14, 0.72);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
       animation: fadeIn 0.22s ease-out;
     }
-    .hud-section.active {
-      display: block;
+
+    .liquid-modal {
+      width: 100%;
+      max-width: 400px;
+      background: linear-gradient(160deg, rgba(24, 34, 56, 0.95) 0%, rgba(11, 17, 30, 0.98) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.78), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      border-radius: 24px;
+      padding: 18px;
+      animation: popUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
-    /* Cyber Header Banner */
-    .cyber-header {
-      background: linear-gradient(135deg, rgba(14, 22, 40, 0.95), rgba(8, 12, 24, 0.95));
-      border: 1px solid var(--border-cyber);
-      border-left: 4px solid var(--neon-cyan);
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin-bottom: 14px;
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.08);
+    @keyframes popUp {
+      from { opacity: 0; transform: translateY(14px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes slideRight {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(0); }
+    }
+
+    .drawer-panel {
+      width: 82%;
+      max-width: 310px;
+      height: 100%;
+      background: linear-gradient(165deg, rgba(20, 30, 50, 0.96) 0%, rgba(9, 14, 26, 0.98) 100%);
+      border-right: 1px solid rgba(255, 255, 255, 0.18);
+      border-top-right-radius: 26px;
+      border-bottom-right-radius: 26px;
+      padding: 18px 14px;
       display: flex;
+      flex-direction: column;
       justify-content: space-between;
-      align-items: center;
-    }
-    .cyber-title {
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: 0.8px;
-      color: #fff;
-      text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
-    }
-    .cyber-sub {
-      font-size: 12px;
-      color: var(--text-dim);
-      margin-top: 3px;
-    }
-    .cyber-badge {
-      background: rgba(0, 240, 255, 0.12);
-      border: 1px solid var(--neon-cyan);
-      color: var(--neon-cyan);
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 99px;
-      white-space: nowrap;
+      animation: slideRight 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    /* Cyber Cards */
-    .cyber-card {
-      background: var(--bg-card);
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      border-radius: 14px;
+    .hidden { display: none !important; }
+
+    .screen-container {
       padding: 14px;
-      margin-bottom: 12px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(10px);
-    }
-    .cyber-card.glow-cyan {
-      border-color: rgba(0, 240, 255, 0.35);
-      box-shadow: 0 0 18px rgba(0, 240, 255, 0.12);
-    }
-    .cyber-card.glow-crimson {
-      border-color: rgba(255, 0, 85, 0.4);
-      box-shadow: 0 0 18px rgba(255, 0, 85, 0.14);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 32px;
     }
 
-    /* Buttons */
-    .btn-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 10px;
+    .seg-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 4px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    .cyber-btn {
-      flex: 1;
-      min-width: 110px;
-      padding: 10px 14px;
+
+    .seg-btn {
+      padding: 8px 10px;
       border-radius: 10px;
-      font-size: 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      text-align: center;
+      color: var(--text-sub);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .seg-btn.active {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .site-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 13px;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .site-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 9px 14px;
+      font-size: 12.5px;
       font-weight: 700;
       cursor: pointer;
-      border: 1px solid transparent;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: all 0.18s ease;
-      color: #fff;
-    }
-    .cyber-btn:active {
-      transform: scale(0.96);
-    }
-    .btn-cyan {
-      background: linear-gradient(135deg, #0088aa, #005577);
-      border-color: var(--neon-cyan);
-      box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
-    }
-    .btn-crimson {
-      background: linear-gradient(135deg, #FF0055, #B8003D);
-      border-color: #FF4D88;
-      box-shadow: 0 0 12px rgba(255, 0, 85, 0.3);
-    }
-    .btn-dark {
-      background: #151E32;
-      border-color: #2D3B55;
-      color: var(--text-main);
-    }
-    .btn-green {
-      background: linear-gradient(135deg, #059669, #047857);
-      border-color: var(--neon-green);
     }
 
-    /* Horizontal Pills */
-    .pill-bar {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      margin-bottom: 10px;
-      scrollbar-width: none;
-    }
-    .pill-bar::-webkit-scrollbar { display: none; }
-    .cyber-pill {
-      padding: 7px 14px;
-      border-radius: 99px;
-      background: #111827;
-      border: 1px solid #28354E;
-      color: var(--text-dim);
+    .btn-emerald {
+      background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+      color: #04130d;
+      border: none;
+      border-radius: 10px;
+      padding: 6px 11px;
       font-size: 12px;
-      font-weight: 600;
-      white-space: nowrap;
+      font-weight: 700;
       cursor: pointer;
     }
-    .cyber-pill.active {
-      background: rgba(0, 240, 255, 0.15);
-      border-color: var(--neon-cyan);
-      color: var(--neon-cyan);
-      box-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
-    }
 
-    /* Inputs */
-    .cyber-input {
+    input[type="text"] {
       width: 100%;
-      background: #0D1322;
-      border: 1px solid #26344D;
-      border-radius: 10px;
-      padding: 10px 12px;
+      height: 38px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.16);
       color: #fff;
+      padding: 0 12px;
       font-size: 13px;
       outline: none;
     }
-    .cyber-input:focus {
-      border-color: var(--neon-cyan);
-      box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+
+    input[type="text"]:focus {
+      border-color: var(--accent-sky);
     }
 
-    /* Preview Video Box */
-    .preview-box {
+    .drawer-item {
       width: 100%;
-      aspect-ratio: 16/9;
-      background: #000;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid var(--border-cyber);
-      margin-bottom: 12px;
-      position: relative;
-      display: none;
-    }
-    .preview-box.active {
-      display: block;
-    }
-    .preview-box video {
-      width: 100%;
-      height: 100%;
-    }
-
-    /* Channel Grid */
-    .channel-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-    @media (min-width: 560px) {
-      .channel-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    .channel-item {
-      background: rgba(16, 23, 41, 0.9);
-      border: 1px solid #1E293B;
-      border-radius: 12px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 8px;
-      transition: border-color 0.2s;
-    }
-    .channel-item:hover, .channel-item:active {
-      border-color: var(--neon-cyan);
-    }
-    .ch-group {
-      font-size: 10px;
-      color: var(--neon-cyan);
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .ch-name {
-      font-size: 13px;
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.3;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    /* Remote Deck */
-    .remote-deck {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin: 14px 0;
-    }
-    .remote-btn {
-      background: linear-gradient(145deg, #131C31, #0C1220);
-      border: 1px solid #263554;
-      color: #fff;
+      padding: 11px 12px;
       border-radius: 14px;
-      padding: 16px 8px;
-      font-size: 14px;
-      font-weight: 800;
-      text-align: center;
+      background: transparent;
+      border: 1px solid transparent;
+      color: #e2e8f0;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    .remote-btn:active {
-      border-color: var(--neon-cyan);
-      transform: scale(0.95);
-    }
-    .remote-btn.primary {
-      background: linear-gradient(135deg, #FF0055, #990033);
-      border-color: #FF4D88;
-      box-shadow: 0 0 16px rgba(255, 0, 85, 0.35);
+      text-align: left;
     }
 
-    .url-mono {
-      font-family: monospace;
-      font-size: 11px;
-      color: #64748B;
-      word-break: break-all;
-      margin-top: 4px;
-      background: rgba(0,0,0,0.35);
-      padding: 6px 8px;
-      border-radius: 6px;
+    .drawer-item:hover, .drawer-item.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.32);
+      color: #38bdf8;
+      font-weight: 600;
     }
 
     .switch-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       padding: 10px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .switch-row:last-child { border-bottom: none; }
+
+    .switch-row:last-child {
+      border-bottom: none;
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #10b981;
+      flex-shrink: 0;
+    }
+
+    .truncate {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    video::cue {
+      background: rgba(0, 0, 0, 0.72);
+      color: #ffffff;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- SHARED MINI VIDEO PREVIEW PLAYER -->
-  <div id="previewContainer" style="padding: 12px 14px 0;">
-    <div id="previewBox" class="preview-box">
-      <video id="previewVideo" controls playsinline></video>
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:#090D16;">
-        <span id="previewTitle" style="font-size:12px; font-weight:700; color:var(--neon-cyan);">กำลังเล่นตัวอย่าง</span>
-        <button class="cyber-btn btn-crimson" style="flex:0; min-width:auto; padding:5px 12px;" onclick="castCurrentPreview()">📺 ยิงขึ้นทีวี</button>
+  <!-- ===================================================================== -->
+  <!-- SCREEN 1: START PAGE (MOST VISITED & BOOKMARKS — NO FORCED DREAMHUB)   -->
+  <!-- ===================================================================== -->
+  <div id="screen-home" class="screen-container">
+    <!-- Restore Session Banner -->
+    <div id="restore-session-card" class="liquid-glass hidden" style="padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+      <div style="font-size: 12.5px; color: #e2e8f0; line-height: 1.4;">
+        คุณต้องการเปิดเว็บไซต์ที่คุณเยี่ยมชมล่าสุดอีกครั้งหรือไม่
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+        <button onclick="restoreLastSession()" class="btn-primary" style="padding: 6px 12px; font-size: 12px;">ใช่</button>
+        <button onclick="dismissRestoreCard()" style="background: transparent; border: none; color: #94a3b8; padding: 4px; cursor: pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Segmented Tabs: MOST VISITED | BOOKMARKS -->
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="seg-bar" style="flex: 1;">
+        <button id="tab-btn-most" class="seg-btn active" onclick="switchHomeSubTab('most')">เยี่ยมชมมากที่สุด</button>
+        <button id="tab-btn-book" class="seg-btn" onclick="switchHomeSubTab('bookmarks')">บุ๊คมาร์ค</button>
+      </div>
+      <button onclick="openAddSiteModal()" class="liquid-pill" style="height: 38px; padding: 0 12px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+        เพิ่มเว็บ
+      </button>
+    </div>
+
+    <!-- Websites List Container -->
+    <div id="home-sites-list" style="display: flex; flex-direction: column; gap: 9px;"></div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- SCREEN 4: MULTI-TABS SWITCHER & BROWSER HISTORY                       -->
+  <!-- ===================================================================== -->
+  <div id="screen-tabs" class="screen-container hidden">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <span style="font-size: 14px; font-weight: 700;">แท็บที่เปิดอยู่</span>
+      <button onclick="createNewBrowserTab()" class="btn-primary" style="padding: 7px 12px; font-size: 12px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+        แท็บใหม่
+      </button>
+    </div>
+
+    <div id="tabs-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+      <span style="font-size: 14px; font-weight: 700;">ประวัติเบราว์เซอร์ (Browser History)</span>
+      <button onclick="clearHistoryNow()" style="background: transparent; border: none; color: #f43f5e; font-size: 12px; font-weight: 600; cursor: pointer;">ล้างประวัติ</button>
+    </div>
+
+    <div id="history-list-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- SCREEN 5: DETECTED VIDEO LIST (WITH SAMSUNG TV VERIFIED HIGHLIGHT)    -->
+  <!-- ===================================================================== -->
+  <div id="screen-videolist" class="hidden">
+    <div class="liquid-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button onclick="returnToBrowserOrHome()" style="background: transparent; border: none; color: #fff; padding: 6px; cursor: pointer;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
+        </button>
+        <span style="font-size: 15px; font-weight: 700;">รายการวิดีโอ</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <button onclick="showScreen('settings')" title="ตั้งค่าบล็อกโฆษณา" class="liquid-pill" style="padding: 6px 10px; font-size: 11.5px; cursor: pointer;">
+          ตั้งค่าบล็อกโฆษณา
+        </button>
+        <button onclick="showScreen('devices')" style="background: transparent; border: none; color: #38bdf8; padding: 6px; cursor: pointer;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2 16.1A5 5 0 015.9 20M2 12.05A9 9 0 019.95 20M2 8V6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2h-6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="screen-container">
+      <!-- Smart Proxy Toggle -->
+      <label class="liquid-glass" style="padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;">
+        <div>
+          <div style="font-size: 13px; font-weight: 700;">เชื่อมต่อวิดีโอผ่านโทรศัพท์ (Smart Proxy)</div>
+          <div style="font-size: 11.5px; color: #38bdf8; margin-top: 2px;">แปลงไฟล์ master.txt เป็น .m3u8 และรองรับ MP4 บนทีวีซัมซุงอัตโนมัติ</div>
+        </div>
+        <input type="checkbox" id="chk-route-proxy" checked />
+      </label>
+
+      <!-- Manual Stream Test / Paste Input -->
+      <div class="liquid-glass" style="padding: 10px 12px; display: flex; gap: 8px; align-items: center;">
+        <input type="text" id="inp-manual-stream" placeholder="วางลิงก์ .m3u8 / master.txt / .mp4 โดยตรง..." style="height: 34px; font-size: 12px;" />
+        <button onclick="playManualStreamInput()" class="btn-primary" style="height: 34px; padding: 0 12px; flex-shrink: 0; font-size: 12px;">เล่น</button>
+      </div>
+
+      <!-- Verified Streams Container -->
+      <div id="videolist-items-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- SCREEN 7: SELECT CAST DEVICE ("เลือกอุปกรณ์ที่จะส่ง")                   -->
+  <!-- ===================================================================== -->
+  <div id="screen-devices" class="hidden">
+    <div class="liquid-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button onclick="returnToBrowserOrHome()" style="background: transparent; border: none; color: #fff; padding: 6px; cursor: pointer;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
+        </button>
+        <div>
+          <div style="font-size: 15px; font-weight: 700;">เลือกอุปกรณ์ที่จะส่ง</div>
+          <div style="font-size: 11px; color: #38bdf8;">ค้นหา: Samsung Smart TV (DLNA) / Chromecast / เว็บทีวี</div>
+        </div>
+      </div>
+      <button onclick="rescanTvDevices()" class="btn-primary" style="padding: 6px 12px; font-size: 12px;">สแกนใหม่</button>
+    </div>
+
+    <div class="screen-container">
+      <div id="devices-list-container" style="display: flex; flex-direction: column; gap: 9px;"></div>
+
+      <!-- Web Browser Receiver Card -->
+      <div class="liquid-glass" style="padding: 13px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-size: 13px; font-weight: 700; color: #38bdf8;">รับเว็บเบราว์เซอร์ (ส่งไปยังเว็บเบราว์เซอร์ทีวี)</div>
+        <div style="font-size: 12px; color: #cbd5e1;">หากทีวีค้นหาไม่เจอ สามารถเปิดเว็บเบราว์เซอร์บนทีวีแล้วพิมพ์ลิงก์นี้:</div>
+        <div id="lbl-web-receiver-url" style="font-family: monospace; font-size: 13px; font-weight: 700; color: #34d399; padding: 6px 10px; background: rgba(0,0,0,0.35); border-radius: 8px;">http://192.168.1.x:8765/tv</div>
+      </div>
+
+      <!-- Manual IP Input -->
+      <div class="liquid-glass" style="padding: 13px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 12.5px; font-weight: 600;">เพิ่ม IP ทีวี Samsung / DLNA ด้วยตนเอง</div>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="inp-manual-tv-ip" placeholder="เช่น 192.168.1.146" />
+          <button onclick="probeTvIpNow()" class="btn-primary" style="flex-shrink: 0;">เชื่อมต่อ</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- ================================================================= -->
-  <!-- SECTION 1: 🎯 VIDEO SNIFFER CENTER                                -->
-  <!-- ================================================================= -->
-  <div id="section-sniffer" class="hud-section active">
-    <div class="cyber-header">
-      <div>
-        <div class="cyber-title">🎯 VIDEO STREAM SNIFFER</div>
-        <div class="cyber-sub">ดักจับไฟล์ .M3U8 / .MP4 อัตโนมัติจากหน้าเว็บ</div>
+  <!-- ===================================================================== -->
+  <!-- SCREEN 8: CONDITIONAL VIDEO CONTROL & PLAYER (WITH -10s / +10s)       -->
+  <!-- ===================================================================== -->
+  <div id="screen-player" class="hidden" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(180deg, #0b1324 0%, #050811 100%);">
+    <!-- Top Player Header -->
+    <div class="liquid-header" style="border-bottom: none;">
+      <button onclick="minimizePlayerScreen()" title="ย่อกลับไปหน้าเบราว์เซอร์" class="liquid-pill" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+      <div style="flex: 1; text-align: center; padding: 0 10px; overflow: hidden;">
+        <div id="player-title-label" class="truncate" style="font-size: 13.5px; font-weight: 700;">กำลังเล่นวิดีโอ</div>
+        <div id="player-subtitle-status" class="truncate" style="font-size: 11.5px; color: #34d399; margin-top: 2px;">โหมดแคสต์และควบคุมวิดีโอ</div>
       </div>
-      <span class="cyber-badge" id="snifferCountBadge">0 สตรีม</span>
+      <button onclick="showScreen('devices')" class="liquid-pill" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #38bdf8; cursor: pointer;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2 16.1A5 5 0 015.9 20M2 12.05A9 9 0 019.95 20M2 8V6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2h-6"/></svg>
+      </button>
     </div>
 
-    <!-- Quick Portal Shortcuts -->
-    <div class="cyber-card">
-      <div style="font-size:12px; font-weight:700; color:var(--neon-cyan); margin-bottom:8px;">⚡ ทางลัดเปิดเว็บดูหนัง (พร้อมระบบทะลุบล็อก ISP)</div>
-      <div class="pill-bar" style="margin-bottom:0;">
-        <button class="cyber-pill active" onclick="openSite('https://teeradream.github.io/dream-hub/')">🎬 DreamHub</button>
-        <button class="cyber-pill" onclick="openSite('https://9nung.net/')">🍿 9NUNG</button>
-        <button class="cyber-pill" onclick="openSite('https://www.123-hda.com/')">🎥 123-HDA</button>
-        <button class="cyber-pill" onclick="openSite('https://www.google.com/')">🔍 Google</button>
+    <!-- Center Video Viewport / Cast Status Card -->
+    <div style="padding: 0 14px; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px;">
+      <!-- In-App HTML5 Video Element -->
+      <div id="inapp-video-wrapper" class="liquid-glass" style="overflow: hidden; background: #000; position: relative; border-radius: 18px;">
+        <video id="inapp-video" controls playsinline crossorigin="anonymous" style="width: 100%; max-height: 240px; display: block; background: #000;">
+          <track id="inapp-sub-track" kind="subtitles" label="ซับไตเติ้ล" srclang="th" default />
+        </video>
+      </div>
+
+      <!-- Background Casting Tip Card -->
+      <div class="liquid-glass" style="padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+        <div style="width: 38px; height: 38px; border-radius: 12px; background: rgba(56, 189, 248, 0.16); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; color: #38bdf8; flex-shrink: 0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.45;">
+          คุณสามารถกดปุ่มลูกศรด้านบนซ้ายเพื่อย่อหน้านี้ไปเปิดเว็บอื่น หรือล็อกหน้าจอมือถือขณะแคสต์ขึ้นทีวีได้ทันที
+        </div>
       </div>
     </div>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin: 12px 0 8px;">
-      <span style="font-size:13px; font-weight:700;">รายการวิดีโอที่ตรวจพบในหน้าเว็บ</span>
-      <button class="cyber-pill" onclick="refreshSniffedVideos()">🔄 รีเฟรช</button>
-    </div>
+    <!-- Bottom Controls Stack -->
+    <div style="padding: 14px 16px 26px 16px; display: flex; flex-direction: column; gap: 16px;">
+      <!-- Seekbar Timeline -->
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #94a3b8; font-family: monospace;">
+          <span id="lbl-cur-time">00:00</span>
+          <span id="lbl-dur-time">00:00</span>
+        </div>
+        <input type="range" id="player-seekbar" min="0" max="7200" value="0" onchange="onSeekbarChange(this.value)" style="width: 100%; accent-color: #38bdf8;" />
+      </div>
 
-    <div id="sniffedList"></div>
+      <!-- 4 Function Buttons Row (Subtitles, Cast Current, Vol -, Vol +) -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+        <button onclick="openSubtitleSearchModal()" class="liquid-glass-verified" style="padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path stroke-linecap="round" d="M7 15h4m4 0h2M7 11h2m4 0h4"/></svg>
+          <span style="font-size: 11.5px; font-weight: 700; color: #34d399;">คำบรรยาย</span>
+        </button>
+
+        <button onclick="castActiveStreamToTvNow()" class="liquid-glass" style="padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; color: #e2e8f0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2 16.1A5 5 0 015.9 20M2 12.05A9 9 0 019.95 20M2 8V6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2h-6"/></svg>
+          <span style="font-size: 11.5px;">ยิงขึ้นทีวี</span>
+        </button>
+
+        <button onclick="adjustTvVolume(-10)" class="liquid-glass" style="padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; color: #e2e8f0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 010 7.07"/></svg>
+          <span style="font-size: 11.5px;">ลดเสียงทีวี</span>
+        </button>
+
+        <button onclick="adjustTvVolume(10)" class="liquid-glass" style="padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; color: #e2e8f0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
+          <span style="font-size: 11.5px;">เพิ่มเสียงทีวี</span>
+        </button>
+      </div>
+
+      <!-- Primary Transport Controls Row (WITH -10s AND +10s REWIND/FORWARD BUTTONS) -->
+      <div style="display: flex; align-items: center; justify-content: space-around; padding-top: 4px;">
+        <!-- Rewind 10 Seconds (-10s) -->
+        <button onclick="seekByDelta(-10)" title="ย้อนกลับ 10 วินาที" class="liquid-pill" style="width: 50px; height: 50px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+          <span style="font-size: 10.5px; font-weight: 700; margin-top: 1px;">-10s</span>
+        </button>
+
+        <!-- Speed Button -->
+        <button onclick="cyclePlaybackSpeed()" id="btn-speed" class="liquid-pill" style="width: 44px; height: 44px; border-radius: 50%; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+          1.0x
+        </button>
+
+        <!-- Center Play / Pause Button -->
+        <button onclick="togglePlayPauseMain()" id="btn-play-pause-main" style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); border: none; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(56, 189, 248, 0.38); cursor: pointer;">
+          <svg id="svg-play-pause" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+
+        <!-- Stop & Hide Player Button -->
+        <button onclick="stopAndClosePlayer()" title="หยุดเล่นและซ่อนหน้าคอนโทรล" class="liquid-pill" style="width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #f43f5e; cursor: pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+        </button>
+
+        <!-- Forward 10 Seconds (+10s) -->
+        <button onclick="seekByDelta(10)" title="เดินหน้า 10 วินาที" class="liquid-pill" style="width: 50px; height: 50px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+          <span style="font-size: 10.5px; font-weight: 700; margin-top: 1px;">+10s</span>
+        </button>
+      </div>
+    </div>
   </div>
 
-  <!-- ================================================================= -->
-  <!-- SECTION 2: 📡 IPTV M3U / M3U8 CENTER                              -->
-  <!-- ================================================================= -->
-  <div id="section-iptv" class="hud-section">
-    <div class="cyber-header">
-      <div>
-        <div class="cyber-title">📡 CYBER IPTV CENTER</div>
-        <div class="cyber-sub">ดูทีวีสด & ซีรีส์ M3U8 พร้อมยิงขึ้นจอทีวี</div>
-      </div>
-      <span class="cyber-badge" id="iptvCountBadge">0 ช่อง</span>
-    </div>
-
-    <!-- Playlist Source Selector -->
-    <div class="pill-bar" id="iptvSourceBar">
-      <button class="cyber-pill active" data-src="thaitv" onclick="loadIptvSource('thaitv', this)">⚡ ทีวีดิจิทัลไทยสด</button>
-      <button class="cyber-pill" data-src="dreamhub" onclick="loadIptvSource('dreamhub', this)">🎬 DreamHub (419 ตอน)</button>
-      <button class="cyber-pill" data-src="thailand_cable" onclick="loadIptvSource('thailand_cable', this)">📺 เคเบิลไทย</button>
-      <button class="cyber-pill" data-src="custom" onclick="toggleCustomM3uBox()">➕ เพิ่มเพลย์ลิสต์ M3U</button>
-    </div>
-
-    <!-- Custom M3U Input Drawer -->
-    <div id="customM3uBox" class="cyber-card glow-cyan" style="display:none;">
-      <div style="font-size:13px; font-weight:700; color:var(--neon-cyan); margin-bottom:8px;">➕ นำเข้าเพลย์ลิสต์ M3U / M3U8</div>
-      <input type="text" id="customM3uUrlInput" class="cyber-input" placeholder="วางลิงก์ https://example.com/playlist.m3u">
-      <div class="btn-row">
-        <button class="cyber-btn btn-cyan" onclick="importM3uFromUrl()">🌐 โหลดจาก URL</button>
-        <button class="cyber-btn btn-dark" onclick="document.getElementById('customM3uBox').style.display='none'">ปิด</button>
+  <!-- ===================================================================== -->
+  <!-- SCREEN 9: SETTINGS, MOVIE AD-SHIELD & ISP BLOCK BYPASS                 -->
+  <!-- ===================================================================== -->
+  <div id="screen-settings" class="hidden">
+    <div class="liquid-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button onclick="returnToBrowserOrHome()" style="background: transparent; border: none; color: #fff; padding: 6px; cursor: pointer;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
+        </button>
+        <span style="font-size: 15px; font-weight: 700;">การตั้งค่า & บล็อกโฆษณาเว็บหนัง</span>
       </div>
     </div>
 
-    <!-- Search & Group Filter -->
-    <input type="text" id="iptvSearchInput" class="cyber-input" placeholder="🔍 ค้นหาชื่อช่อง หรือชื่อเรื่อง..." oninput="renderIptvChannels()" style="margin-bottom:10px;">
-    <div class="pill-bar" id="iptvGroupBar"></div>
+    <div class="screen-container">
+      <!-- Card 1: Movie Ad-Shield -->
+      <div class="liquid-glass" style="padding: 15px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+          <div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #34d399;">ระบบบล็อกโฆษณาในเว็บหนัง (Movie Ad-Shield)</div>
+            <div id="lbl-blocked-ads-count" style="font-size: 11.5px; color: #94a3b8; margin-top: 2px;">กำลังป้องกันโฆษณาเว็บพนันและป๊อปอัป</div>
+          </div>
+          <input type="checkbox" id="cfg-adblock-master" checked onchange="pushSettingsToNative()" />
+        </div>
 
-    <!-- Channels Grid -->
-    <div class="channel-grid" id="iptvGrid"></div>
+        <label class="switch-row">
+          <div>
+            <div style="font-size: 12.5px; font-weight: 600;">บล็อกป้ายโฆษณาเว็บพนัน & แบนเนอร์บังจอ</div>
+            <div style="font-size: 11.5px; color: #94a3b8;">ซ่อนป้ายโฆษณากระพริบและกรอบใสที่วางทับปุ่มกดเล่นหนัง</div>
+          </div>
+          <input type="checkbox" id="cfg-block-banners" checked onchange="pushSettingsToNative()" />
+        </label>
+
+        <label class="switch-row">
+          <div>
+            <div style="font-size: 12.5px; font-weight: 600;">บล็อกหน้าต่างเด้ง (Pop-up) เวลากดปุ่ม Play</div>
+            <div style="font-size: 11.5px; color: #94a3b8;">ป้องกันการเด้งเปลี่ยนหน้าไปเว็บพนันหรือแอปขายของ</div>
+          </div>
+          <input type="checkbox" id="cfg-block-popups" checked onchange="pushSettingsToNative()" />
+        </label>
+
+        <label class="switch-row">
+          <div>
+            <div style="font-size: 12.5px; font-weight: 600;">กรองคลิปโฆษณาสั้นคั่นก่อนเข้าหนังออกอัตโนมัติ</div>
+            <div style="font-size: 11.5px; color: #94a3b8;">ไม่นำไฟล์โฆษณาสั้นมาปะปนในหน้ารายการวิดีโอ</div>
+          </div>
+          <input type="checkbox" id="cfg-filter-short-ads" checked onchange="pushSettingsToNative()" />
+        </label>
+      </div>
+
+      <!-- Card 2: ISP Block Bypass Engine -->
+      <div class="liquid-glass" style="padding: 15px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+          <div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #38bdf8;">ระบบหลบหลีกการบล็อกของผู้ให้บริการอินเทอร์เน็ต</div>
+            <div style="font-size: 11.5px; color: #94a3b8; margin-top: 2px;">เข้าเว็บหนังที่ถูกบล็อกได้โดยไม่ต้องลงแอป VPN แยก</div>
+          </div>
+          <input type="checkbox" id="cfg-doh-enabled" checked onchange="pushSettingsToNative()" />
+        </div>
+
+        <label class="switch-row">
+          <div>
+            <div style="font-size: 12.5px; font-weight: 600;">ดึงหน้าเว็บผ่านท่อเข้ารหัสเมื่อถูก ISP บล็อก (Deep Bypass)</div>
+            <div style="font-size: 11.5px; color: #94a3b8;">โหลดหน้าเว็บที่ถูกบล็อกผ่าน DNS-over-HTTPS โดยอัตโนมัติ</div>
+          </div>
+          <input type="checkbox" id="cfg-deep-bypass" checked onchange="pushSettingsToNative()" />
+        </label>
+
+        <div style="padding-top: 10px;">
+          <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 8px;">เลือกผู้ให้บริการ DNS เข้ารหัส (DoH Provider):</div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+            <button onclick="selectDohProvider('cloudflare')" id="doh-btn-cloudflare" class="seg-btn active" style="border: 1px solid rgba(56,189,248,0.4);">Cloudflare 1.1.1.1</button>
+            <button onclick="selectDohProvider('google')" id="doh-btn-google" class="seg-btn">Google 8.8.8.8</button>
+            <button onclick="selectDohProvider('quad9')" id="doh-btn-quad9" class="seg-btn">Quad9 9.9.9.9</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- ================================================================= -->
-  <!-- SECTION 3: 🎛️ CYBER HUD TV REMOTE & SETTINGS                      -->
-  <!-- ================================================================= -->
-  <div id="section-remote" class="hud-section">
-    <div class="cyber-header">
+  <!-- ===================================================================== -->
+  <!-- SCREEN 10: 2-TIER IPTV SYSTEM (PLAYLIST MANAGER & PLAYER LIST)        -->
+  <!-- ===================================================================== -->
+  <div id="screen-iptv" class="hidden">
+    <div class="liquid-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button onclick="returnToBrowserOrHome()" style="background: transparent; border: none; color: #fff; padding: 6px; cursor: pointer;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
+        </button>
+        <span style="font-size: 15px; font-weight: 700;">ระบบ IPTV (M3U / M3U8)</span>
+      </div>
+      <button onclick="openAddIptvModal()" class="btn-primary" style="padding: 6px 12px; font-size: 12px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+        เพิ่ม M3U
+      </button>
+    </div>
+
+    <div class="screen-container">
+      <!-- 2-Tier Segmented Bar -->
+      <div class="seg-bar">
+        <button id="iptv-seg-lists" class="seg-btn active" onclick="switchIptvTier('lists')">1. เพลย์ลิสต์ M3U ของฉัน</button>
+        <button id="iptv-seg-player" class="seg-btn" onclick="switchIptvTier('player')">2. ช่องรายการ (Player List)</button>
+      </div>
+
+      <!-- TIER 1: M3U PLAYLIST MANAGER -->
+      <div id="iptv-tier-lists" style="display: flex; flex-direction: column; gap: 10px;">
+        <button onclick="openAddIptvModal()" class="liquid-glass" style="padding: 13px; border: 1.5px dashed rgba(56,189,248,0.5); display: flex; align-items: center; gap: 12px; cursor: pointer; text-align: left; color: #fff;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(56,189,248,0.2); display: flex; align-items: center; justify-content: center; color: #38bdf8; flex-shrink: 0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 13px; font-weight: 700; color: #38bdf8;">เพิ่มลิงก์ Playlist หรือไฟล์ .m3u เข้าไปใหม่</div>
+            <div style="font-size: 11.5px; color: #94a3b8;">รองรับทั้งลิงก์ URL .m3u/.m3u8 และเลือกไฟล์ .m3u จากในเครื่อง</div>
+          </div>
+        </button>
+
+        <div id="iptv-playlists-container" style="display: flex; flex-direction: column; gap: 9px;"></div>
+      </div>
+
+      <!-- TIER 2: CHANNEL PLAYER LIST -->
+      <div id="iptv-tier-player" class="hidden" style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span id="lbl-active-playlist-name" style="font-size: 13px; font-weight: 700; color: #38bdf8;">กำลังแสดงช่องรายการ</span>
+          <button onclick="switchIptvTier('lists')" style="background: transparent; border: none; color: #94a3b8; font-size: 12px; cursor: pointer;">เปลี่ยนเพลย์ลิสต์</button>
+        </div>
+
+        <input type="text" id="inp-iptv-search" placeholder="ค้นหาชื่อช่อง หรือชื่อเรื่องในเพลย์ลิสต์..." oninput="renderIptvChannels()" />
+
+        <div id="iptv-groups-bar" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;"></div>
+
+        <div id="iptv-channels-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- OVERLAY: SIDE NAVIGATION DRAWER (Screen 2)                            -->
+  <!-- ===================================================================== -->
+  <div id="modal-drawer" class="liquid-modal-backdrop hidden" style="padding: 0; justify-content: flex-start;" onclick="if(event.target===this) returnToBrowserOrHome()">
+    <div class="drawer-panel">
       <div>
-        <div class="cyber-title">🎛️ CYBER TV REMOTE & SHIELD</div>
-        <div class="cyber-sub">เชื่อมต่อ Samsung TV / DLNA & ตั้งค่าทะลุบล็อก</div>
+        <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 14px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.12);">
+          <div style="width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #38bdf8, #2563eb); display: flex; align-items: center; justify-content: center; color: #fff;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2 16.1A5 5 0 015.9 20M2 12.05A9 9 0 019.95 20M2 8V6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2h-6"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 15px; font-weight: 700; color: #fff;">DreamHub Caster</div>
+            <div style="font-size: 11px; color: #38bdf8;">Liquid Glass Edition</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <button class="drawer-item" onclick="returnToBrowserOrHome()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8"/></svg>
+            เบราว์เซอร์
+          </button>
+          <button class="drawer-item" onclick="showScreen('iptv')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M10 9l5 3-5 3V9z"/></svg>
+            ระบบ IPTV (M3U Playlists)
+          </button>
+          <button class="drawer-item" onclick="showScreen('videolist')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            รายการวิดีโอที่ตรวจพบ
+          </button>
+          <button class="drawer-item" onclick="openSubtitleSearchModal()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path stroke-linecap="round" d="M7 15h4m4 0h2M7 11h2m4 0h4"/></svg>
+            ค้นหาซับไตเติ้ลออนไลน์
+          </button>
+          <button class="drawer-item" onclick="showScreen('home'); switchHomeSubTab('bookmarks');">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+            บุ๊คมาร์ค
+          </button>
+          <button class="drawer-item" onclick="showScreen('tabs')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            แท็บ & ประวัติเบราว์เซอร์
+          </button>
+          <button class="drawer-item" onclick="showScreen('home'); switchHomeSubTab('most');">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            เยี่ยมชมมากที่สุด
+          </button>
+          <button class="drawer-item" onclick="showScreen('settings')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            การตั้งค่า & บล็อกโฆษณาเว็บหนัง
+          </button>
+        </div>
       </div>
-      <span class="cyber-badge" id="activeTvBadge">NO TV</span>
+
+      <div style="padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11.5px; color: #94a3b8;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>ทะลุบล็อก ISP (DoH)</span>
+          <span style="color: #34d399; font-weight: 700;">ทำงานอยู่</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>Movie Ad-Shield</span>
+          <span style="color: #34d399; font-weight: 700;">ทำงานอยู่</span>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- 1. TV Discovery Radar -->
-    <div class="cyber-card glow-cyan">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div>
-          <div style="font-size:14px; font-weight:800; color:var(--neon-cyan);">📡 เรดาร์ค้นหา Smart TV (Wi-Fi เดียวกัน)</div>
-          <div style="font-size:11px; color:var(--text-dim);">รองรับ Samsung Smart TV (Tizen), LG webOS, Sony, Android TV</div>
-        </div>
-        <button class="cyber-btn btn-cyan" style="flex:0; min-width:auto; padding:8px 14px;" onclick="scanTvs()">🔍 สแกนหาทีวี</button>
+  <!-- ===================================================================== -->
+  <!-- MODAL 6: STREAM ACTION MODAL ("เลือกวิธีการเล่น")                        -->
+  <!-- ===================================================================== -->
+  <div id="modal-stream-actions" class="liquid-modal-backdrop hidden" onclick="if(event.target===this) closeStreamActionModal()">
+    <div class="liquid-modal">
+      <div id="action-modal-title" class="truncate" style="font-size: 14px; font-weight: 700; color: #fff;">เลือกวิธีการเล่นวิดีโอ</div>
+      <div id="action-modal-url" class="truncate" style="font-size: 11.5px; color: #34d399; margin-top: 3px; margin-bottom: 12px;">m3u8 (เล่นได้ชัวร์)</div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <button onclick="executeStreamAction('cast')" class="drawer-item active">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 16.1A5 5 0 015.9 20M2 12.05A9 9 0 019.95 20M2 8V6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2h-6"/></svg>
+          เชื่อมต่อและแคสต์ขึ้นทีวี (Samsung / Chromecast)
+        </button>
+        <button onclick="executeStreamAction('inapp')" class="drawer-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><circle cx="12" cy="18" r="1"/></svg>
+          เล่นในแอป (ตัวเล่นวิดีโอบนมือถือ)
+        </button>
+        <button onclick="executeStreamAction('subtitles')" class="drawer-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path stroke-linecap="round" d="M7 15h4m4 0h2M7 11h2m4 0h4"/></svg>
+          ค้นหาซับไตเติ้ลออนไลน์แล้วแอดเข้าหนัง
+        </button>
+        <button onclick="executeStreamAction('external')" class="drawer-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+          เปิดด้วยแอปภายนอก...
+        </button>
       </div>
 
-      <div id="tvDeviceList" style="margin-bottom:10px;"></div>
-
-      <div style="display:flex; gap:8px; margin-top:8px;">
-        <input type="text" id="manualTvIpInput" class="cyber-input" placeholder="ระบุ IP ทีวีด้วยตนเอง (เช่น 192.168.1.50)">
-        <button class="cyber-btn btn-dark" style="flex:0; min-width:95px;" onclick="addManualTv()">+ เชื่อมต่อ</button>
-      </div>
-    </div>
-
-    <!-- 2. Remote Control Deck -->
-    <div class="cyber-card glow-crimson">
-      <div style="font-size:12px; color:var(--neon-crimson); font-weight:700;">NOW CASTING MONITOR</div>
-      <div id="remoteNowPlaying" style="font-size:15px; font-weight:800; color:#fff; margin:4px 0 2px;">ยังไม่ได้เล่นสตรีม</div>
-      <div style="font-size:11px; color:var(--neon-green);">✅ โหมด Background Service ทำงานอยู่: ล็อกหน้าจอมือถือได้ทันที</div>
-
-      <div class="remote-deck">
-        <button class="remote-btn" onclick="remoteCmd('play')">▶ เล่น (PLAY)</button>
-        <button class="remote-btn primary" onclick="remoteCmd('pause')">⏸ พัก (PAUSE)</button>
-        <button class="remote-btn" onclick="remoteCmd('stop')">⏹ หยุด (STOP)</button>
-        <button class="remote-btn" onclick="remoteSeekOffset(-60)">⏪ -1 นาที</button>
-        <button class="remote-btn" onclick="remoteSeekOffset(-15)">⏪ -15 วิ</button>
-        <button class="remote-btn" onclick="remoteSeekOffset(15)">+15 วิ ⏩</button>
-      </div>
-
-      <!-- Seek To Minute -->
-      <div style="margin-top:10px;">
-        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
-          <span>⏱️ เลื่อนไปนาทีที่ต้องการ (Seek)</span>
-          <span id="seekTimeLabel" style="color:var(--neon-cyan); font-weight:700;">00:00</span>
-        </div>
-        <input type="range" id="seekSlider" min="0" max="7200" value="0" style="width:100%; accent-color:var(--neon-cyan);" oninput="updateSeekLabel(this.value)" onchange="remoteSeekExact(this.value)">
-      </div>
-
-      <!-- Volume Slider -->
-      <div style="margin-top:12px;">
-        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
-          <span>🔊 ระดับเสียงทีวี (TV Volume)</span>
-          <span id="volLabel" style="color:var(--neon-cyan); font-weight:700;">35%</span>
-        </div>
-        <input type="range" min="0" max="100" value="35" style="width:100%; accent-color:var(--neon-crimson);" onchange="remoteSetVol(this.value)" oninput="document.getElementById('volLabel').textContent=this.value+'%'">
+      <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+        <button onclick="closeStreamActionModal()" class="liquid-pill" style="padding: 6px 16px; font-size: 12.5px; cursor: pointer;">ปิด</button>
       </div>
     </div>
+  </div>
 
-    <!-- 3. Cyber Shield (ISP Unblock DoH & AdBlocker) -->
-    <div class="cyber-card">
-      <div style="font-size:14px; font-weight:800; color:var(--neon-cyan); margin-bottom:8px;">🛡️ ระบบทะลุบล็อก ISP & ป้องกันโฆษณา</div>
+  <!-- ===================================================================== -->
+  <!-- MODAL 10M: ADD IPTV M3U PLAYLIST MODAL                                -->
+  <!-- ===================================================================== -->
+  <div id="modal-add-iptv" class="liquid-modal-backdrop hidden" onclick="if(event.target===this) closeAddIptvModal()">
+    <div class="liquid-modal">
+      <div style="font-size: 14.5px; font-weight: 700; margin-bottom: 12px;">เพิ่มเพลย์ลิสต์ IPTV (M3U / M3U8)</div>
+      <div style="display: flex; flex-direction: column; gap: 9px;">
+        <input type="text" id="inp-new-m3u-name" placeholder="ตั้งชื่อเพลย์ลิสต์ (เช่น ช่องหนังและกีฬา)" />
+        <input type="text" id="inp-new-m3u-url" placeholder="วางลิงก์ URL .m3u หรือ .m3u8..." />
 
-      <div class="switch-row">
+        <div style="text-align: center; font-size: 11.5px; color: #94a3b8;">— หรือนำเข้าไฟล์จากเครื่อง —</div>
+
+        <button onclick="pickLocalM3uFile()" class="liquid-pill" style="padding: 10px; font-size: 12.5px; font-weight: 600; color: #38bdf8; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+          เลือกไฟล์ .m3u จากในโทรศัพท์
+        </button>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+        <button onclick="closeAddIptvModal()" class="liquid-pill" style="padding: 7px 14px; font-size: 12px; cursor: pointer;">ยกเลิก</button>
+        <button onclick="saveNewM3uUrlPlaylist()" class="btn-primary" style="padding: 7px 16px; font-size: 12px;">บันทึกเพลย์ลิสต์</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 11: ONLINE SUBTITLE SEARCH & ONE-CLICK ATTACH                   -->
+  <!-- ===================================================================== -->
+  <div id="modal-subtitles" class="liquid-modal-backdrop hidden" onclick="if(event.target===this) closeSubtitleSearchModal()">
+    <div class="liquid-modal" style="max-height: 88vh; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
         <div>
-          <div style="font-size:13px; font-weight:700;">🔓 DNS-over-HTTPS (Cloudflare 1.1.1.1)</div>
-          <div style="font-size:11px; color:var(--text-dim);">เข้าเว็บที่ถูกผู้ให้บริการอินเทอร์เน็ตบล็อกโดยไม่ต้องใช้ VPN</div>
+          <div style="font-size: 14.5px; font-weight: 700;">ค้นหาซับไตเติ้ลออนไลน์</div>
+          <div style="font-size: 11.5px; color: #38bdf8;">พิมพ์ชื่อหนัง/ซีรีส์แล้วกดแอดเข้าเล่นพร้อมหนังทันที</div>
         </div>
-        <input type="checkbox" id="dohToggle" checked onchange="toggleDoh(this.checked)" style="width:20px; height:20px; accent-color:var(--neon-cyan);">
+        <button onclick="closeSubtitleSearchModal()" style="background: transparent; border: none; color: #94a3b8; cursor: pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
 
-      <div class="switch-row">
-        <div>
-          <div style="font-size:13px; font-weight:700;">🚫 บล็อกโฆษณา & ป๊อปอัปเว็บหนัง</div>
-          <div style="font-size:11px; color:var(--text-dim);">บล็อกไปแล้ว <span id="blockedCountText" style="color:var(--neon-green); font-weight:700;">0</span> รายการ</div>
-        </div>
-        <input type="checkbox" id="adBlockToggle" checked onchange="toggleAdBlock(this.checked)" style="width:20px; height:20px; accent-color:var(--neon-cyan);">
+      <div style="display: flex; gap: 6px;">
+        <input type="text" id="inp-sub-query" placeholder="พิมพ์ชื่อหนัง หรือ ซีรีส์ (เช่น The Terminal List)..." />
+        <button onclick="runOnlineSubtitleSearch()" class="btn-primary" style="flex-shrink: 0;">ค้นหา</button>
       </div>
 
-      <div class="switch-row">
-        <div>
-          <div style="font-size:13px; font-weight:700;">🖧 Local Proxy Relay Server</div>
-          <div style="font-size:11px; color:var(--text-dim);">IP เครื่อง: <span id="lanIpText" style="color:var(--neon-cyan); font-family:monospace;">192.168.x.x:8765</span></div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <button onclick="setSubLangFilter('th')" id="sub-lang-th" class="seg-btn active" style="padding: 5px 10px; border: 1px solid rgba(52,211,153,0.4);">ไทย (Thai)</button>
+        <button onclick="setSubLangFilter('en')" id="sub-lang-en" class="seg-btn" style="padding: 5px 10px;">English</button>
+        <button onclick="pickLocalSrtFile()" class="liquid-pill" style="padding: 5px 10px; font-size: 11.5px; color: #38bdf8; cursor: pointer;">เลือกไฟล์ .srt ในเครื่อง</button>
+      </div>
+
+      <div id="subtitle-results-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; max-height: 260px; padding-right: 2px;"></div>
+
+      <div class="liquid-pill" style="padding: 9px 12px; display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 11.5px; color: #cbd5e1;">ปรับจังหวะเวลาซับไตเติ้ล (Sync)</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button onclick="shiftSubTiming(-500)" class="liquid-pill" style="padding: 3px 8px; font-size: 11.5px; cursor: pointer;">-0.5s</button>
+          <span id="lbl-sub-offset" style="font-family: monospace; font-size: 12px; color: #34d399;">0.0s</span>
+          <button onclick="shiftSubTiming(500)" class="liquid-pill" style="padding: 3px 8px; font-size: 11.5px; cursor: pointer;">+0.5s</button>
         </div>
-        <span class="cyber-badge" style="color:var(--neon-green); border-color:var(--neon-green);">ONLINE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: ADD BOOKMARK / MOST VISITED SITE                               -->
+  <!-- ===================================================================== -->
+  <div id="modal-add-site" class="liquid-modal-backdrop hidden" onclick="if(event.target===this) closeAddSiteModal()">
+    <div class="liquid-modal">
+      <div style="font-size: 14px; font-weight: 700; margin-bottom: 10px;">เพิ่มเว็บไซต์ที่เข้าบ่อย / บุ๊คมาร์ค</div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <input type="text" id="inp-site-title" placeholder="ชื่อเว็บไซต์ (เช่น Serie-Days)" />
+        <input type="text" id="inp-site-url" placeholder="https://www.serie-days.com" />
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+        <button onclick="closeAddSiteModal()" class="liquid-pill" style="padding: 6px 12px; font-size: 12px;">ยกเลิก</button>
+        <button onclick="saveNewSiteBookmark()" class="btn-primary" style="padding: 6px 14px; font-size: 12px;">บันทึก</button>
       </div>
     </div>
   </div>
 
   <script>
-    let allIptvChannels = [];
-    let currentIptvGroup = 'ทั้งหมด';
-    let currentPreviewItem = null;
-    let hlsPreview = null;
-    let estimatedPositionSec = 0;
+    const DEFAULT_SITES = [
+      { title: "www.google.com", url: "https://www.google.com", badge: "G", color: "#38bdf8", bookmarked: true },
+      { title: "dumoviefree.com", url: "https://dumoviefree.com/", badge: "DM", color: "#10b981", bookmarked: true },
+      { title: "www.serie-days.com", url: "https://www.serie-days.com/", badge: "SD", color: "#facc15", bookmarked: true },
+      { title: "goseries4k.com", url: "https://goseries4k.com/", badge: "4K", color: "#818cf8", bookmarked: true },
+      { title: "ball67.com", url: "https://ball67.com/", badge: "B67", color: "#34d399", bookmarked: false },
+      { title: "www2.warpfootball.com", url: "https://www2.warpfootball.com/", badge: "WF", color: "#f43f5e", bookmarked: false },
+      { title: "teeradream.github.io", url: "https://teeradream.github.io/dream-hub/", badge: "DH", color: "#38bdf8", bookmarked: true }
+    ];
 
-    function showHudSection(sectionKey) {
-      document.querySelectorAll('.hud-section').forEach(el => el.classList.remove('active'));
-      if (sectionKey === 'iptv') {
-        document.getElementById('section-iptv').classList.add('active');
-        if (allIptvChannels.length === 0) {
-          loadIptvSource('thaitv', document.querySelector('#iptvSourceBar .cyber-pill'));
-        }
-      } else if (sectionKey === 'remote') {
-        document.getElementById('section-remote').classList.add('active');
-        refreshSystemStatus();
-        renderTvDevices();
-      } else {
-        document.getElementById('section-sniffer').classList.add('active');
-        refreshSniffedVideos();
-      }
+    let homeSubTab = "most";
+    let selectedStreamItem = null;
+    let currentPlaybackSpeed = 1.0;
+    let currentTvVolume = 35;
+    let subLangFilter = "th";
+    let activeDohProvider = "cloudflare";
+
+    // IPTV State
+    let savedIptvPlaylists = [];
+    let currentIptvChannels = [];
+    let currentIptvGroup = "ทั้งหมด";
+
+    function initApp() {
+      loadSitesFromStorage();
+      loadIptvPlaylistsFromStorage();
+      checkRestoreSessionBanner();
+      renderHomeSites();
+      syncSystemSettings();
     }
 
-    window.onNativeVideoDetected = function(count) {
-      refreshSniffedVideos();
-    };
-
-    function openSite(url) {
-      if (window.NativeBridge) {
-        window.NativeBridge.openUrlInBrowser(url);
-      }
-    }
-
-    // ─── SNIFFER FUNCTIONS ──────────────────────────────────────
-    function refreshSniffedVideos() {
-      if (!window.NativeBridge) return;
+    function loadSitesFromStorage() {
       try {
-        const raw = window.NativeBridge.getSniffedVideosJson();
-        const list = JSON.parse(raw || '[]');
-        document.getElementById('snifferCountBadge').textContent = list.length + ' สตรีม';
-
-        const container = document.getElementById('sniffedList');
-        if (list.length === 0) {
-          container.innerHTML = `
-            <div class="cyber-card" style="text-align:center; padding:28px 16px;">
-              <div style="font-size:28px; margin-bottom:8px;">📡</div>
-              <div style="font-size:14px; font-weight:700; color:#fff;">กำลังดักจับสัญญาณวิดีโอ...</div>
-              <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">
-                เปิดเว็บดูหนังในแท็บ <b>เบราว์เซอร์</b> แล้วกดปุ่มเล่นวิดีโอ<br>ระบบจะดูดลิงก์ .M3U8 / .MP4 มาแสดงที่นี่อัตโนมัติ
-              </div>
-            </div>`;
-          return;
+        const raw = localStorage.getItem("dh_frequent_sites");
+        if (!raw) {
+          localStorage.setItem("dh_frequent_sites", JSON.stringify(DEFAULT_SITES));
         }
+      } catch (e) {}
+    }
 
-        container.innerHTML = list.map((v, idx) => `
-          <div class="cyber-card ${idx === 0 ? 'glow-cyan' : ''}">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-              <div style="font-size:13px; font-weight:800; color:#fff; line-height:1.35;">${escapeHtml(v.title)}</div>
-              <span class="cyber-badge">${escapeHtml(v.format)}</span>
+    function getStoredSites() {
+      try {
+        const raw = localStorage.getItem("dh_frequent_sites");
+        return raw ? JSON.parse(raw) : DEFAULT_SITES;
+      } catch (e) {
+        return DEFAULT_SITES;
+      }
+    }
+
+    function checkRestoreSessionBanner() {
+      try {
+        if (window.NativeBridge && NativeBridge.getLastSessionUrl) {
+          const lastUrl = NativeBridge.getLastSessionUrl();
+          const dismissed = sessionStorage.getItem("dh_restore_dismissed");
+          const card = document.getElementById("restore-session-card");
+          if (lastUrl && lastUrl.startsWith("http") && !dismissed) {
+            card.classList.remove("hidden");
+          } else {
+            card.classList.add("hidden");
+          }
+        }
+      } catch (e) {}
+    }
+
+    function restoreLastSession() {
+      try {
+        const lastUrl = NativeBridge.getLastSessionUrl();
+        sessionStorage.setItem("dh_restore_dismissed", "1");
+        document.getElementById("restore-session-card").classList.add("hidden");
+        if (lastUrl) NativeBridge.navigateToUrl(lastUrl);
+      } catch (e) {}
+    }
+
+    function dismissRestoreCard() {
+      sessionStorage.setItem("dh_restore_dismissed", "1");
+      document.getElementById("restore-session-card").classList.add("hidden");
+    }
+
+    function switchHomeSubTab(tab) {
+      homeSubTab = tab;
+      document.getElementById("tab-btn-most").classList.toggle("active", tab === "most");
+      document.getElementById("tab-btn-book").classList.toggle("active", tab === "bookmarks");
+      renderHomeSites();
+    }
+
+    function renderHomeSites() {
+      const container = document.getElementById("home-sites-list");
+      const allSites = getStoredSites();
+      const filtered = homeSubTab === "bookmarks" ? allSites.filter(s => s.bookmarked) : allSites;
+
+      container.innerHTML = filtered.map((s, idx) => `
+        <div class="liquid-glass site-row" onclick="openWebsite('${s.url.replace(/'/g, "\\'")}')">
+          <div style="display: flex; align-items: center; gap: 12px; overflow: hidden;">
+            <div class="site-avatar" style="background: ${s.color || '#38bdf8'}22; color: ${s.color || '#38bdf8'};">
+              ${(s.badge || s.title.substring(0, 2)).toUpperCase()}
             </div>
-            <div class="url-mono">${escapeHtml(v.url)}</div>
-            <div class="btn-row">
-              <button class="cyber-btn btn-crimson" onclick='castStream(${JSON.stringify(v.url)}, ${JSON.stringify(v.title)}, ${JSON.stringify(v.referer)}, false)'>
-                📺 Cast ตรง (ปิดแอปได้)
-              </button>
-              <button class="cyber-btn btn-cyan" onclick='castStream(${JSON.stringify(v.url)}, ${JSON.stringify(v.title)}, ${JSON.stringify(v.referer)}, true)'>
-                🛡️ Cast ผ่าน Proxy
-              </button>
-              <button class="cyber-btn btn-dark" style="flex:0; min-width:80px;" onclick='playInPreview(${JSON.stringify(v.url)}, ${JSON.stringify(v.title)}, ${JSON.stringify(v.referer)})'>
-                ▶ ดูในแอป
-              </button>
+            <div style="overflow: hidden;">
+              <div class="truncate" style="font-size: 13.5px; font-weight: 700; color: #fff;">${escapeHtml(s.title)}</div>
+              <div class="truncate" style="font-size: 11.5px; color: #94a3b8; margin-top: 2px;">${escapeHtml(s.url)}</div>
             </div>
           </div>
-        `).join('');
-      } catch (e) {}
+          <button onclick="event.stopPropagation(); removeStoredSite(${idx});" style="background: transparent; border: none; color: #94a3b8; padding: 6px; cursor: pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+          </button>
+        </div>
+      `).join("");
     }
 
-    // ─── IPTV FUNCTIONS ─────────────────────────────────────────
-    function loadIptvSource(presetName, btnEl) {
-      document.querySelectorAll('#iptvSourceBar .cyber-pill').forEach(b => b.classList.remove('active'));
-      if (btnEl) btnEl.classList.add('active');
-      document.getElementById('customM3uBox').style.display = 'none';
+    function openWebsite(url) {
+      if (window.NativeBridge && NativeBridge.navigateToUrl) {
+        NativeBridge.navigateToUrl(url);
+      }
+    }
 
-      if (!window.NativeBridge) return;
+    function removeStoredSite(index) {
+      const sites = getStoredSites();
+      sites.splice(index, 1);
+      localStorage.setItem("dh_frequent_sites", JSON.stringify(sites));
+      renderHomeSites();
+    }
+
+    function openAddSiteModal() {
+      document.getElementById("modal-add-site").classList.remove("hidden");
+    }
+
+    function closeAddSiteModal() {
+      document.getElementById("modal-add-site").classList.add("hidden");
+    }
+
+    function saveNewSiteBookmark() {
+      const titleInput = document.getElementById("inp-site-title").value.trim();
+      let urlInput = document.getElementById("inp-site-url").value.trim();
+      if (!urlInput) return;
+      if (!urlInput.startsWith("http")) urlInput = "https://" + urlInput;
+      const domain = titleInput || urlInput.replace(/^https?:\/\//, "").split("/")[0];
+      const sites = getStoredSites();
+      sites.unshift({
+        title: domain,
+        url: urlInput,
+        badge: domain.substring(0, 2).toUpperCase(),
+        color: "#38bdf8",
+        bookmarked: true
+      });
+      localStorage.setItem("dh_frequent_sites", JSON.stringify(sites));
+      closeAddSiteModal();
+      renderHomeSites();
+    }
+
+    // =======================================================================
+    // SCREEN NAVIGATION CONTROLLER
+    // =======================================================================
+    window.showScreen = function(screen) {
+      const screens = ["home", "tabs", "videolist", "devices", "player", "settings", "iptv"];
+      screens.forEach(s => {
+        const el = document.getElementById("screen-" + s);
+        if (el) el.classList.add("hidden");
+      });
+      document.getElementById("modal-drawer").classList.add("hidden");
+      document.getElementById("modal-subtitles").classList.add("hidden");
+
+      if (screen === "drawer") {
+        document.getElementById("screen-home").classList.remove("hidden");
+        document.getElementById("modal-drawer").classList.remove("hidden");
+      } else if (screen === "subtitles") {
+        document.getElementById("screen-player").classList.remove("hidden");
+        openSubtitleSearchModal();
+      } else {
+        const target = document.getElementById("screen-" + screen);
+        if (target) target.classList.remove("hidden");
+      }
+
+      if (screen === "videolist") renderDetectedVideoList();
+      if (screen === "tabs") renderTabsAndHistory();
+      if (screen === "devices") renderCastDevices();
+      if (screen === "settings") syncSystemSettings();
+      if (screen === "iptv") renderIptvPlaylists();
+    };
+
+    function returnToBrowserOrHome() {
+      document.getElementById("modal-drawer").classList.add("hidden");
+      if (window.NativeBridge && NativeBridge.switchScreenFromJs) {
+        NativeBridge.switchScreenFromJs("browser");
+      } else {
+        showScreen("home");
+      }
+    }
+
+    // =======================================================================
+    // SCREEN 4: MULTI-TAB SWITCHER & BROWSER HISTORY
+    // =======================================================================
+    function renderTabsAndHistory() {
       try {
-        const json = window.NativeBridge.getIptvPreset(presetName);
-        allIptvChannels = JSON.parse(json || '[]');
-        currentIptvGroup = 'ทั้งหมด';
-        buildIptvGroups();
-        renderIptvChannels();
-      } catch (e) {}
-    }
+        if (!window.NativeBridge) return;
+        const data = JSON.parse(NativeBridge.getTabsAndHistoryJson());
+        const tabsGrid = document.getElementById("tabs-grid-container");
+        const histList = document.getElementById("history-list-container");
 
-    function toggleCustomM3uBox() {
-      const box = document.getElementById('customM3uBox');
-      box.style.display = box.style.display === 'none' ? 'block' : 'none';
-    }
+        tabsGrid.innerHTML = (data.tabs || []).map(t => `
+          <div onclick="NativeBridge.switchToTab('${t.id}')" class="liquid-glass" style="padding: 12px; height: 96px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; border-color: ${t.active ? '#38bdf8' : 'rgba(255,255,255,0.14)'};">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+              <span class="truncate" style="font-size: 12.5px; font-weight: 700; color: #fff;">${escapeHtml(t.title || 'แท็บ')}</span>
+              <button onclick="event.stopPropagation(); closeBrowserTab('${t.id}');" style="background: transparent; border: none; color: #94a3b8; padding: 2px; cursor: pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div class="truncate" style="font-size: 11px; color: #94a3b8;">${escapeHtml(t.url === 'about:home' ? 'หน้าเริ่มต้น — เว็บที่เข้าบ่อย' : t.url)}</div>
+            <div style="font-size: 11px; font-weight: 600; color: ${t.active ? '#38bdf8' : '#64748b'};">${t.active ? 'กำลังเปิดอยู่' : 'แตะเพื่อสลับ'}</div>
+          </div>
+        `).join("");
 
-    function importM3uFromUrl() {
-      const url = document.getElementById('customM3uUrlInput').value.trim();
-      if (!url || !window.NativeBridge) return;
-      try {
-        const json = window.NativeBridge.fetchCustomM3uUrl(url);
-        const parsed = JSON.parse(json || '[]');
-        if (parsed.length > 0) {
-          allIptvChannels = parsed;
-          currentIptvGroup = 'ทั้งหมด';
-          document.getElementById('customM3uBox').style.display = 'none';
-          buildIptvGroups();
-          renderIptvChannels();
+        const hist = data.history || [];
+        if (hist.length === 0) {
+          histList.innerHTML = `<div class="liquid-glass" style="padding: 16px; text-align: center; font-size: 12px; color: #94a3b8;">ยังไม่มีประวัติการเข้าชมเว็บไซต์</div>`;
         } else {
-          alert('ไม่พบช่องรายการในลิงก์ที่ระบุ กรุณาตรวจสอบลิงก์ .m3u');
+          histList.innerHTML = hist.map(h => `
+            <div onclick="openWebsite('${h.url.replace(/'/g, "\\'")}')" class="liquid-glass" style="padding: 11px 13px; cursor: pointer;">
+              <div class="truncate" style="font-size: 12.5px; font-weight: 600; color: #fff;">${escapeHtml(h.title || h.url)}</div>
+              <div class="truncate" style="font-size: 11px; color: #94a3b8; margin-top: 2px;">${escapeHtml(h.url)}</div>
+            </div>
+          `).join("");
         }
       } catch (e) {}
     }
 
-    function buildIptvGroups() {
-      const groups = ['ทั้งหมด', ...new Set(allIptvChannels.map(c => c.group || 'ทั่วไป'))];
-      const bar = document.getElementById('iptvGroupBar');
+    function createNewBrowserTab() {
+      if (window.NativeBridge) NativeBridge.createNewTab();
+    }
+
+    function closeBrowserTab(tabId) {
+      if (window.NativeBridge) {
+        NativeBridge.closeTab(tabId);
+        renderTabsAndHistory();
+      }
+    }
+
+    function clearHistoryNow() {
+      if (window.NativeBridge) {
+        NativeBridge.clearBrowserHistory();
+        renderTabsAndHistory();
+      }
+    }
+
+    // =======================================================================
+    // SCREEN 5: DETECTED VIDEO LIST (WITH VERIFIED HIGHLIGHT)
+    // =======================================================================
+    window.onNativeVideoDetected = function() {
+      if (!document.getElementById("screen-videolist").classList.contains("hidden")) {
+        renderDetectedVideoList();
+      }
+    };
+
+    function renderDetectedVideoList() {
+      const container = document.getElementById("videolist-items-container");
+      let list = [];
+      try {
+        if (window.NativeBridge) {
+          list = JSON.parse(NativeBridge.getSniffedVideosJson());
+        }
+      } catch (e) {}
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="liquid-glass" style="padding: 24px 16px; text-align: center;">
+            <div style="font-size: 13.5px; font-weight: 700; color: #fff; margin-bottom: 6px;">กำลังรอตรวจจับสตรีมวิดีโอ...</div>
+            <div style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
+              เปิดหน้าเว็บดูหนังแล้วกดปุ่ม Play บนหน้าเว็บ ระบบจะดักจับลิงก์ .m3u8, master.txt และ .mp4 พร้อมไฮไลท์ไฟล์ที่เล่นบนทีวีซัมซุงได้ชัวร์ให้อัตโนมัติ
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      window.__currentSniffedList = list;
+      const verifiedPrimary = list.filter(v => v.verified && v.isMasterOrPrimary);
+      const secondaryList = list.filter(v => !(v.verified && v.isMasterOrPrimary));
+
+      let html = "";
+      if (verifiedPrimary.length > 0) {
+        html += `<div style="font-size: 12px; font-weight: 700; color: #34d399; padding: 2px 4px;">แนะนำ: เล่นได้ชัวร์บน Samsung TV & Chromecast (${verifiedPrimary.length})</div>`;
+        html += verifiedPrimary.map((v, i) => buildVideoCardHtml(v, true, list.indexOf(v))).join("");
+      }
+      if (secondaryList.length > 0) {
+        html += `<div style="font-size: 12px; font-weight: 600; color: #94a3b8; padding: 6px 4px 2px 4px;">ลิงก์สำรอง / ความละเอียดย่อย (${secondaryList.length})</div>`;
+        html += secondaryList.map((v, i) => buildVideoCardHtml(v, false, list.indexOf(v))).join("");
+      }
+      container.innerHTML = html;
+    }
+
+    function buildVideoCardHtml(v, isHighlighted, globalIdx) {
+      const cardClass = isHighlighted ? "liquid-glass-verified" : "liquid-glass";
+      const badgeHtml = isHighlighted
+        ? `<span style="padding: 2px 7px; border-radius: 6px; background: #34d399; color: #04130d; font-size: 11px; font-weight: 800; margin-right: 6px;">เล่นได้ชัวร์</span>`
+        : "";
+      const shortType = (v.url.toLowerCase().includes(".mp4")) ? "MP4" : "HLS";
+      return `
+        <div class="${cardClass}" onclick="openStreamActionModal(${globalIdx})" style="padding: 12px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+          <div style="width: 52px; height: 66px; border-radius: 12px; background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(52, 211, 153, 0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;">
+            <span style="font-size: 12px; font-weight: 800; color: #a7f3d0;">${shortType}</span>
+            <span style="font-size: 10.5px; color: #34d399; margin-top: 2px;">${escapeHtml(v.resolution || 'HD')}</span>
+          </div>
+          <div style="flex: 1; overflow: hidden;">
+            <div class="truncate" style="font-size: 13px; font-weight: 700; color: #fff;">
+              ${badgeHtml}${escapeHtml(v.title || 'Video Stream')}
+            </div>
+            <div class="truncate" style="font-size: 11px; color: #cbd5e1; margin-top: 4px;">${escapeHtml(v.url)}</div>
+            <div style="display: inline-block; margin-top: 6px; padding: 3px 8px; border-radius: 6px; background: rgba(16, 185, 129, 0.22); border: 1px solid rgba(52, 211, 153, 0.4); font-size: 11px; font-weight: 600; color: #6ee7b7;">
+              ${escapeHtml(v.badgeText || v.format)}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function playManualStreamInput() {
+      const url = document.getElementById("inp-manual-stream").value.trim();
+      if (!url) return;
+      selectedStreamItem = {
+        url: url,
+        title: "สตรีมที่ระบุเอง",
+        referer: "",
+        badgeText: url.toLowerCase().includes(".mp4") ? "mp4 (Direct)" : "m3u8 (HLS)"
+      };
+      document.getElementById("action-modal-title").textContent = selectedStreamItem.title;
+      document.getElementById("action-modal-url").textContent = selectedStreamItem.url;
+      document.getElementById("modal-stream-actions").classList.remove("hidden");
+    }
+
+    function openStreamActionModal(idx) {
+      const list = window.__currentSniffedList || [];
+      if (!list[idx]) return;
+      selectedStreamItem = list[idx];
+      document.getElementById("action-modal-title").textContent = selectedStreamItem.title || "วิดีโอที่ตรวจพบ";
+      document.getElementById("action-modal-url").textContent = selectedStreamItem.badgeText || selectedStreamItem.format;
+      document.getElementById("modal-stream-actions").classList.remove("hidden");
+    }
+
+    function closeStreamActionModal() {
+      document.getElementById("modal-stream-actions").classList.add("hidden");
+    }
+
+    function executeStreamAction(action) {
+      closeStreamActionModal();
+      if (!selectedStreamItem) return;
+      const useProxy = document.getElementById("chk-route-proxy").checked;
+
+      if (action === "cast") {
+        if (window.NativeBridge) {
+          const ok = NativeBridge.castVideo(
+            selectedStreamItem.url,
+            selectedStreamItem.title || "DreamHub Video",
+            selectedStreamItem.referer || "",
+            useProxy
+          );
+          if (ok) {
+            launchPlayerScreen(selectedStreamItem, true);
+          } else {
+            showScreen("devices");
+          }
+        }
+      } else if (action === "inapp") {
+        launchPlayerScreen(selectedStreamItem, false);
+      } else if (action === "subtitles") {
+        launchPlayerScreen(selectedStreamItem, false);
+        openSubtitleSearchModal();
+      } else if (action === "external") {
+        if (window.NativeBridge) NativeBridge.openExternalPlayer(selectedStreamItem.url);
+      }
+    }
+
+    // =======================================================================
+    // SCREEN 8: CONDITIONAL PLAYER & CAST CONTROLLER (WITH -10s / +10s)
+    // =======================================================================
+    function launchPlayerScreen(streamObj, isCastingToTv) {
+      selectedStreamItem = streamObj;
+      showScreen("player");
+      document.getElementById("player-title-label").textContent = streamObj.title || "กำลังเล่นวิดีโอ";
+
+      if (window.NativeBridge) {
+        NativeBridge.setVideoActiveState(true);
+      }
+
+      const videoEl = document.getElementById("inapp-video");
+      const useProxy = document.getElementById("chk-route-proxy") ? document.getElementById("chk-route-proxy").checked : true;
+
+      if (!isCastingToTv) {
+        let playUrl = streamObj.url;
+        if (window.NativeBridge && (useProxy || playUrl.toLowerCase().includes("master.txt") || playUrl.toLowerCase().includes("index.txt"))) {
+          playUrl = NativeBridge.prepareProxiedStreamUrl(streamObj.url, streamObj.referer || "");
+        }
+        videoEl.src = playUrl;
+        videoEl.play().catch(() => {});
+        document.getElementById("player-subtitle-status").textContent = "กำลังเล่นบนตัวเล่นภายในแอป";
+      } else {
+        videoEl.pause();
+        document.getElementById("player-subtitle-status").textContent = "กำลังแคสต์ขึ้นทีวี • กด -10s / +10s เพื่อกรอเวลาได้";
+      }
+    }
+
+    function minimizePlayerScreen() {
+      returnToBrowserOrHome();
+    }
+
+    function stopAndClosePlayer() {
+      const videoEl = document.getElementById("inapp-video");
+      videoEl.pause();
+      videoEl.removeAttribute("src");
+      if (window.NativeBridge) {
+        NativeBridge.remoteStop();
+        NativeBridge.setVideoActiveState(false);
+      }
+      returnToBrowserOrHome();
+    }
+
+    window.onNativeStopAll = function() {
+      const videoEl = document.getElementById("inapp-video");
+      if (videoEl) {
+        videoEl.pause();
+        videoEl.removeAttribute("src");
+      }
+    };
+
+    function seekByDelta(deltaSeconds) {
+      const videoEl = document.getElementById("inapp-video");
+      if (videoEl && videoEl.src && !videoEl.paused) {
+        videoEl.currentTime = Math.max(0, videoEl.currentTime + deltaSeconds);
+      }
+      if (window.NativeBridge) {
+        const nextSec = NativeBridge.remoteSeekRelative(deltaSeconds);
+        if (nextSec >= 0) {
+          document.getElementById("player-seekbar").value = nextSec;
+          document.getElementById("lbl-cur-time").textContent = formatTime(nextSec);
+        }
+      }
+    }
+
+    function onSeekbarChange(secVal) {
+      const sec = parseInt(secVal, 10) || 0;
+      const videoEl = document.getElementById("inapp-video");
+      if (videoEl && videoEl.src) {
+        videoEl.currentTime = sec;
+      }
+      if (window.NativeBridge) {
+        NativeBridge.remoteSeek(sec);
+      }
+      document.getElementById("lbl-cur-time").textContent = formatTime(sec);
+    }
+
+    function togglePlayPauseMain() {
+      const videoEl = document.getElementById("inapp-video");
+      if (videoEl && videoEl.src) {
+        if (videoEl.paused) videoEl.play();
+        else videoEl.pause();
+      }
+      if (window.NativeBridge) {
+        const status = JSON.parse(NativeBridge.getSystemStatusJson());
+        NativeBridge.remotePlayPause(!status.isPlaying);
+      }
+    }
+
+    function cyclePlaybackSpeed() {
+      const speeds = [1.0, 1.25, 1.5, 2.0];
+      const nextIdx = (speeds.indexOf(currentPlaybackSpeed) + 1) % speeds.length;
+      currentPlaybackSpeed = speeds[nextIdx];
+      document.getElementById("btn-speed").textContent = currentPlaybackSpeed.toFixed(1) + "x";
+      const videoEl = document.getElementById("inapp-video");
+      if (videoEl) videoEl.playbackRate = currentPlaybackSpeed;
+    }
+
+    function adjustTvVolume(delta) {
+      currentTvVolume = Math.max(0, Math.min(100, currentTvVolume + delta));
+      if (window.NativeBridge) {
+        NativeBridge.remoteVolume(currentTvVolume);
+      }
+    }
+
+    function castActiveStreamToTvNow() {
+      if (!selectedStreamItem) {
+        showScreen("devices");
+        return;
+      }
+      if (window.NativeBridge) {
+        const ok = NativeBridge.castVideo(selectedStreamItem.url, selectedStreamItem.title || "Video", selectedStreamItem.referer || "", true);
+        if (!ok) showScreen("devices");
+      }
+    }
+
+    // Update timeline from in-app video
+    document.addEventListener("DOMContentLoaded", () => {
+      const v = document.getElementById("inapp-video");
+      if (v) {
+        v.addEventListener("timeupdate", () => {
+          const cur = Math.floor(v.currentTime || 0);
+          const dur = Math.floor(v.duration || 0);
+          document.getElementById("lbl-cur-time").textContent = formatTime(cur);
+          if (dur > 0) {
+            document.getElementById("lbl-dur-time").textContent = formatTime(dur);
+            document.getElementById("player-seekbar").max = dur;
+            document.getElementById("player-seekbar").value = cur;
+          }
+        });
+      }
+      initApp();
+    });
+
+    function formatTime(sec) {
+      const s = Math.max(0, Math.floor(sec));
+      const mm = String(Math.floor(s / 60)).padStart(2, "0");
+      const ss = String(s % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
+    }
+
+    // =======================================================================
+    // SCREEN 7: CAST DEVICE DISCOVERY
+    // =======================================================================
+    function renderCastDevices() {
+      if (!window.NativeBridge) return;
+      try {
+        const status = JSON.parse(NativeBridge.getSystemStatusJson());
+        document.getElementById("lbl-web-receiver-url").textContent = status.webReceiverUrl || "http://192.168.1.x:8765/tv";
+        const devs = JSON.parse(NativeBridge.getTvDevicesJson());
+        const container = document.getElementById("devices-list-container");
+
+        if (devs.length === 0) {
+          container.innerHTML = `
+            <div class="liquid-glass" style="padding: 16px; text-align: center; font-size: 12.5px; color: #94a3b8;">
+              ยังไม่ได้พบทีวีในวง Wi-Fi เดียวกัน กดปุ่ม "สแกนใหม่" ด้านบน หรือพิมพ์ IP ของทีวีด้านล่างได้เลย
+            </div>
+          `;
+        } else {
+          container.innerHTML = devs.map(d => `
+            <div onclick="selectAndCastToDevice('${d.id}')" class="liquid-glass-verified" style="padding: 13px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+              <div>
+                <div style="font-size: 13.5px; font-weight: 700; color: #fff;">${escapeHtml(d.name)}</div>
+                <div style="font-size: 11.5px; color: #34d399; margin-top: 2px;">${escapeHtml(d.manufacturer)} • IP: ${escapeHtml(d.ipAddress)}</div>
+              </div>
+              <span class="btn-emerald">${d.isActive ? 'เชื่อมต่อแล้ว' : 'เลือกทีวีนี้'}</span>
+            </div>
+          `).join("");
+        }
+      } catch (e) {}
+    }
+
+    function rescanTvDevices() {
+      if (window.NativeBridge) {
+        NativeBridge.scanTvDevices();
+        renderCastDevices();
+      }
+    }
+
+    function probeTvIpNow() {
+      const ip = document.getElementById("inp-manual-tv-ip").value.trim();
+      if (!ip || !window.NativeBridge) return;
+      NativeBridge.addManualTvIp(ip);
+      renderCastDevices();
+    }
+
+    function selectAndCastToDevice(devId) {
+      if (!window.NativeBridge) return;
+      NativeBridge.selectTvDevice(devId);
+      if (selectedStreamItem) {
+        NativeBridge.castVideo(selectedStreamItem.url, selectedStreamItem.title || "Video", selectedStreamItem.referer || "", true);
+        launchPlayerScreen(selectedStreamItem, true);
+      } else {
+        renderCastDevices();
+      }
+    }
+
+    // =======================================================================
+    // SCREEN 10: 2-TIER IPTV PLAYLIST MANAGER & CHANNEL PLAYER LIST
+    // =======================================================================
+    function loadIptvPlaylistsFromStorage() {
+      const defaults = [
+        { id: "preset_thaitv", name: "ทีวีดิจิทัลไทย (Built-in HD)", sourceType: "preset", presetKey: "thaitv", desc: "ช่องทีวีดิจิทัลไทยพร้อมดูทันที" },
+        { id: "preset_cable", name: "เคเบิลทีวี & กีฬาสด (Thailand M3U)", sourceType: "preset", presetKey: "thailand_cable", desc: "ไฟล์ thailand_channels.m3u" },
+        { id: "preset_dreamhub", name: "คลังซีรีส์พากย์ไทย (M3U8)", sourceType: "preset", presetKey: "dreamhub", desc: "รวมซีรีส์และ The Terminal List S2" }
+      ];
+      try {
+        const raw = localStorage.getItem("dh_iptv_playlists");
+        savedIptvPlaylists = raw ? JSON.parse(raw) : defaults;
+      } catch (e) {
+        savedIptvPlaylists = defaults;
+      }
+    }
+
+    function switchIptvTier(tier) {
+      document.getElementById("iptv-seg-lists").classList.toggle("active", tier === "lists");
+      document.getElementById("iptv-seg-player").classList.toggle("active", tier === "player");
+      document.getElementById("iptv-tier-lists").classList.toggle("hidden", tier !== "lists");
+      document.getElementById("iptv-tier-player").classList.toggle("hidden", tier !== "player");
+    }
+
+    function renderIptvPlaylists() {
+      const container = document.getElementById("iptv-playlists-container");
+      container.innerHTML = savedIptvPlaylists.map((p, idx) => `
+        <div onclick="openIptvPlaylist(${idx})" class="liquid-glass" style="padding: 13px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;">
+          <div style="display: flex; align-items: center; gap: 12px; overflow: hidden;">
+            <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(52, 211, 153, 0.35); display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 800; color: #34d399; flex-shrink: 0;">
+              M3U
+            </div>
+            <div style="overflow: hidden;">
+              <div class="truncate" style="font-size: 13.5px; font-weight: 700; color: #fff;">${escapeHtml(p.name)}</div>
+              <div class="truncate" style="font-size: 11.5px; color: #94a3b8; margin-top: 2px;">${escapeHtml(p.desc || p.url || 'เพลย์ลิสต์ M3U')}</div>
+            </div>
+          </div>
+          <span class="btn-emerald" style="flex-shrink: 0;">เปิดช่องรายการ</span>
+        </div>
+      `).join("");
+    }
+
+    function openIptvPlaylist(idx) {
+      const p = savedIptvPlaylists[idx];
+      if (!p) return;
+      document.getElementById("lbl-active-playlist-name").textContent = p.name;
+      switchIptvTier("player");
+
+      try {
+        if (window.NativeBridge) {
+          let jsonStr = "[]";
+          if (p.sourceType === "preset") {
+            jsonStr = NativeBridge.getIptvPreset(p.presetKey);
+          } else if (p.sourceType === "url") {
+            jsonStr = NativeBridge.fetchCustomM3uUrl(p.url, p.name);
+          } else if (p.sourceType === "raw") {
+            jsonStr = NativeBridge.parseCustomM3uRaw(p.rawContent, p.name);
+          }
+          currentIptvChannels = JSON.parse(jsonStr);
+        }
+      } catch (e) {
+        currentIptvChannels = [];
+      }
+      currentIptvGroup = "ทั้งหมด";
+      renderIptvGroups();
+      renderIptvChannels();
+    }
+
+    function renderIptvGroups() {
+      const groups = ["ทั้งหมด"];
+      currentIptvChannels.forEach(c => {
+        if (c.group && !groups.includes(c.group)) groups.push(c.group);
+      });
+      const bar = document.getElementById("iptv-groups-bar");
       bar.innerHTML = groups.map(g => `
-        <button class="cyber-pill ${g === currentIptvGroup ? 'active' : ''}" onclick='selectIptvGroup(${JSON.stringify(g)})'>
+        <button onclick="selectIptvGroup('${g.replace(/'/g, "\\'")}')" class="${g === currentIptvGroup ? 'btn-primary' : 'liquid-pill'}" style="padding: 6px 12px; font-size: 11.5px; white-space: nowrap; cursor: pointer;">
           ${escapeHtml(g)}
         </button>
-      `).join('');
+      `).join("");
     }
 
     function selectIptvGroup(g) {
       currentIptvGroup = g;
-      buildIptvGroups();
+      renderIptvGroups();
       renderIptvChannels();
     }
 
     function renderIptvChannels() {
-      const q = (document.getElementById('iptvSearchInput').value || '').toLowerCase().trim();
-      const filtered = allIptvChannels.filter(c => {
-        const matchGroup = (currentIptvGroup === 'ทั้งหมด') || (c.group === currentIptvGroup);
-        const matchQuery = !q || c.name.toLowerCase().includes(q) || (c.group && c.group.toLowerCase().includes(q));
-        return matchGroup && matchQuery;
+      const q = (document.getElementById("inp-iptv-search").value || "").toLowerCase().trim();
+      const filtered = currentIptvChannels.filter(c => {
+        const matchGroup = currentIptvGroup === "ทั้งหมด" || c.group === currentIptvGroup;
+        const matchQ = !q || (c.name && c.name.toLowerCase().includes(q)) || (c.group && c.group.toLowerCase().includes(q));
+        return matchGroup && matchQ;
       });
 
-      document.getElementById('iptvCountBadge').textContent = filtered.length + ' ช่อง';
-      const grid = document.getElementById('iptvGrid');
-      const slice = filtered.slice(0, 120); // Fast DOM rendering
+      const container = document.getElementById("iptv-channels-container");
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="liquid-glass" style="padding: 18px; text-align: center; font-size: 12.5px; color: #94a3b8;">ไม่พบช่องรายการในหมวดหมู่นี้</div>`;
+        return;
+      }
 
-      grid.innerHTML = slice.map(ch => `
-        <div class="channel-item">
-          <div>
-            <div class="ch-group">${escapeHtml(ch.group)}</div>
-            <div class="ch-name">${escapeHtml(ch.name)}</div>
+      window.__filteredIptv = filtered.slice(0, 120);
+      container.innerHTML = window.__filteredIptv.map((c, i) => `
+        <div onclick="playIptvChannel(${i})" class="liquid-glass" style="padding: 11px 13px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;">
+          <div style="overflow: hidden;">
+            <div class="truncate" style="font-size: 13px; font-weight: 700; color: #fff;">${escapeHtml(c.name)}</div>
+            <div class="truncate" style="font-size: 11px; color: #38bdf8; margin-top: 2px;">หมวด: ${escapeHtml(c.group || 'ทั่วไป')}</div>
           </div>
-          <div style="display:flex; gap:6px; margin-top:4px;">
-            <button class="cyber-btn btn-cyan" style="padding:7px 8px; min-width:auto; font-size:11px;" onclick='playInPreview(${JSON.stringify(ch.url)}, ${JSON.stringify(ch.name)}, "")'>
-              ▶ ดูสด
-            </button>
-            <button class="cyber-btn btn-crimson" style="padding:7px 8px; min-width:auto; font-size:11px;" onclick='castStream(${JSON.stringify(ch.url)}, ${JSON.stringify(ch.name)}, "", false)'>
-              📺 Cast
-            </button>
-          </div>
+          <span class="btn-primary" style="padding: 6px 11px; font-size: 11.5px; flex-shrink: 0;">เล่น / แคสต์</span>
         </div>
-      `).join('');
+      `).join("");
     }
 
-    // ─── PREVIEW PLAYER ─────────────────────────────────────────
-    function playInPreview(url, title, referer) {
-      currentPreviewItem = { url, title, referer };
-      const box = document.getElementById('previewBox');
-      const video = document.getElementById('previewVideo');
-      document.getElementById('previewTitle').textContent = title;
-      box.classList.add('active');
+    function playIptvChannel(idx) {
+      const ch = (window.__filteredIptv || [])[idx];
+      if (!ch) return;
+      selectedStreamItem = {
+        url: ch.url,
+        title: ch.name,
+        referer: "",
+        badgeText: "IPTV Stream (M3U8)"
+      };
+      document.getElementById("action-modal-title").textContent = ch.name;
+      document.getElementById("action-modal-url").textContent = ch.group || "IPTV Channel";
+      document.getElementById("modal-stream-actions").classList.remove("hidden");
+    }
 
-      if (hlsPreview) {
-        hlsPreview.destroy();
-        hlsPreview = null;
+    function openAddIptvModal() {
+      document.getElementById("modal-add-iptv").classList.remove("hidden");
+    }
+
+    function closeAddIptvModal() {
+      document.getElementById("modal-add-iptv").classList.add("hidden");
+    }
+
+    function saveNewM3uUrlPlaylist() {
+      const name = document.getElementById("inp-new-m3u-name").value.trim() || "เพลย์ลิสต์ M3U ของฉัน";
+      const url = document.getElementById("inp-new-m3u-url").value.trim();
+      if (!url) return;
+      savedIptvPlaylists.unshift({
+        id: "m3u_" + Date.now(),
+        name: name,
+        sourceType: "url",
+        url: url,
+        desc: url
+      });
+      localStorage.setItem("dh_iptv_playlists", JSON.stringify(savedIptvPlaylists));
+      closeAddIptvModal();
+      renderIptvPlaylists();
+      openIptvPlaylist(0);
+    }
+
+    function pickLocalM3uFile() {
+      if (window.NativeBridge) {
+        NativeBridge.openLocalFilePicker("m3u");
       }
-
-      if (url.toLowerCase().includes('.m3u8') && typeof Hls !== 'undefined' && Hls.isSupported()) {
-        hlsPreview = new Hls();
-        hlsPreview.loadSource(url);
-        hlsPreview.attachMedia(video);
-        hlsPreview.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
-      } else {
-        video.src = url;
-        video.play().catch(() => {});
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function castCurrentPreview() {
-      if (!currentPreviewItem) return;
-      castStream(currentPreviewItem.url, currentPreviewItem.title, currentPreviewItem.referer || '', false);
-    }
+    window.onNativeM3uFilePicked = function(fileObj) {
+      closeAddIptvModal();
+      if (!fileObj || !fileObj.rawContent) return;
+      const customName = document.getElementById("inp-new-m3u-name").value.trim() || fileObj.fileName || "ไฟล์ M3U ในเครื่อง";
+      savedIptvPlaylists.unshift({
+        id: "m3u_local_" + Date.now(),
+        name: customName,
+        sourceType: "raw",
+        rawContent: fileObj.rawContent,
+        desc: "ไฟล์ในเครื่อง: " + (fileObj.fileName || "local.m3u")
+      });
+      localStorage.setItem("dh_iptv_playlists", JSON.stringify(savedIptvPlaylists));
+      showScreen("iptv");
+      openIptvPlaylist(0);
+    };
 
-    // ─── CAST & REMOTE FUNCTIONS ────────────────────────────────
-    function castStream(url, title, referer, useProxy) {
-      if (!window.NativeBridge) return;
-      const ok = window.NativeBridge.castVideo(url, title, referer || '', !!useProxy);
-      if (ok) {
-        showHudSection('remote');
-      }
-    }
-
-    function scanTvs() {
-      if (!window.NativeBridge) return;
-      document.getElementById('tvDeviceList').innerHTML = `<div style="font-size:12px; color:var(--neon-cyan); padding:8px;">📡 กำลังส่งคลื่นเรดาร์ค้นหา Smart TV ในวง Wi-Fi...</div>`;
-      setTimeout(() => {
-        window.NativeBridge.scanTvDevices();
-        renderTvDevices();
-        refreshSystemStatus();
-      }, 150);
-    }
-
-    function addManualTv() {
-      const ip = document.getElementById('manualTvIpInput').value.trim();
-      if (!ip || !window.NativeBridge) return;
-      window.NativeBridge.addManualTvIp(ip);
-      renderTvDevices();
-      refreshSystemStatus();
-    }
-
-    function renderTvDevices() {
-      if (!window.NativeBridge) return;
-      try {
-        const list = JSON.parse(window.NativeBridge.getTvDevicesJson() || '[]');
-        const box = document.getElementById('tvDeviceList');
-        if (list.length === 0) {
-          box.innerHTML = `<div style="font-size:12px; color:var(--text-dim); padding:6px 0;">ยังไม่พบทีวี กดปุ่ม "🔍 สแกนหาทีวี" หรือพิมพ์ IP ทีวีด้านล่าง</div>`;
-          return;
+    // =======================================================================
+    // SCREEN 11: ONLINE SUBTITLE SEARCH & ONE-CLICK ATTACH
+    // =======================================================================
+    function openSubtitleSearchModal() {
+      document.getElementById("modal-subtitles").classList.remove("hidden");
+      const qInput = document.getElementById("inp-sub-query");
+      if (!qInput.value.trim()) {
+        if (selectedStreamItem && selectedStreamItem.title) {
+          qInput.value = selectedStreamItem.title;
+        } else if (window.NativeBridge) {
+          try {
+            const st = JSON.parse(NativeBridge.getSystemStatusJson());
+            qInput.value = st.currentBrowserTitle || "";
+          } catch (e) {}
         }
-        box.innerHTML = list.map(d => `
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:10px; margin-bottom:6px; background:${d.isActive ? 'rgba(0,240,255,0.14)' : '#0E1525'}; border:1px solid ${d.isActive ? 'var(--neon-cyan)' : '#223049'};" onclick='selectTv(${JSON.stringify(d.id)})'>
-            <div>
-              <div style="font-size:13px; font-weight:800; color:#fff;">📺 ${escapeHtml(d.name)}</div>
-              <div style="font-size:11px; color:var(--text-dim);">${escapeHtml(d.manufacturer)} • IP: ${escapeHtml(d.ipAddress)}</div>
+      }
+      runOnlineSubtitleSearch();
+    }
+
+    function closeSubtitleSearchModal() {
+      document.getElementById("modal-subtitles").classList.add("hidden");
+    }
+
+    function setSubLangFilter(lang) {
+      subLangFilter = lang;
+      document.getElementById("sub-lang-th").classList.toggle("active", lang === "th");
+      document.getElementById("sub-lang-en").classList.toggle("active", lang === "en");
+      runOnlineSubtitleSearch();
+    }
+
+    function runOnlineSubtitleSearch() {
+      const q = document.getElementById("inp-sub-query").value.trim() || "Movie";
+      const container = document.getElementById("subtitle-results-container");
+      try {
+        if (window.NativeBridge) {
+          const list = JSON.parse(NativeBridge.searchSubtitlesOnline(q, subLangFilter));
+          window.__subResults = list;
+          container.innerHTML = list.map((s, i) => `
+            <div onclick="attachSubtitleResult(${i})" class="liquid-glass-verified" style="padding: 11px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;">
+              <div style="overflow: hidden;">
+                <div class="truncate" style="font-size: 12.5px; font-weight: 700; color: #fff;">${escapeHtml(s.title)}</div>
+                <div style="font-size: 11px; color: #34d399; margin-top: 2px;">${escapeHtml(s.language)} • ${escapeHtml(s.source)}</div>
+              </div>
+              <span class="btn-emerald" style="flex-shrink: 0;">แอดเข้าหนัง</span>
             </div>
-            <span class="cyber-badge">${d.isActive ? 'เชื่อมต่ออยู่' : 'เลือก'}</span>
-          </div>
-        `).join('');
+          `).join("");
+        }
       } catch (e) {}
     }
 
-    function selectTv(id) {
+    function attachSubtitleResult(idx) {
+      const item = (window.__subResults || [])[idx];
+      if (!item || !window.NativeBridge) return;
+      try {
+        const res = JSON.parse(NativeBridge.attachOnlineSubtitle(item.downloadUrl, item.title, item.language));
+        if (res.success) {
+          const track = document.getElementById("inapp-sub-track");
+          if (track && res.vttUrl) {
+            track.src = res.vttUrl;
+          }
+          document.getElementById("player-subtitle-status").textContent = "ซับไตเติ้ล: " + item.title;
+          closeSubtitleSearchModal();
+        }
+      } catch (e) {}
+    }
+
+    function pickLocalSrtFile() {
+      if (window.NativeBridge) {
+        NativeBridge.openLocalFilePicker("srt");
+      }
+    }
+
+    window.onNativeSubtitleAttached = function(fileName) {
+      document.getElementById("player-subtitle-status").textContent = "ซับไตเติ้ลในเครื่อง: " + fileName;
+      closeSubtitleSearchModal();
+    };
+
+    function shiftSubTiming(deltaMs) {
       if (!window.NativeBridge) return;
-      window.NativeBridge.selectTvDevice(id);
-      renderTvDevices();
-      refreshSystemStatus();
+      const totalMs = NativeBridge.adjustSubtitleTiming(deltaMs);
+      const sec = (totalMs / 1000).toFixed(1);
+      document.getElementById("lbl-sub-offset").textContent = (totalMs >= 0 ? "+" : "") + sec + "s";
     }
 
-    function remoteCmd(cmd) {
-      if (!window.NativeBridge) return;
-      if (cmd === 'play') window.NativeBridge.remotePlayPause(true);
-      else if (cmd === 'pause') window.NativeBridge.remotePlayPause(false);
-      else if (cmd === 'stop') window.NativeBridge.remoteStop();
-      refreshSystemStatus();
-    }
-
-    function remoteSeekOffset(deltaSec) {
-      estimatedPositionSec = Math.max(0, estimatedPositionSec + deltaSec);
-      document.getElementById('seekSlider').value = estimatedPositionSec;
-      updateSeekLabel(estimatedPositionSec);
-      if (window.NativeBridge) window.NativeBridge.remoteSeek(estimatedPositionSec);
-    }
-
-    function remoteSeekExact(sec) {
-      estimatedPositionSec = parseInt(sec, 10) || 0;
-      if (window.NativeBridge) window.NativeBridge.remoteSeek(estimatedPositionSec);
-    }
-
-    function updateSeekLabel(sec) {
-      const s = parseInt(sec, 10) || 0;
-      const h = Math.floor(s / 3600);
-      const m = Math.floor((s % 3600) / 60);
-      const rem = s % 60;
-      document.getElementById('seekTimeLabel').textContent =
-        (h > 0 ? h + ':' : '') + (m < 10 ? '0' : '') + m + ':' + (rem < 10 ? '0' : '') + rem;
-    }
-
-    function remoteSetVol(v) {
-      if (window.NativeBridge) window.NativeBridge.remoteVolume(parseInt(v, 10) || 30);
-    }
-
-    function toggleDoh(enabled) {
-      if (window.NativeBridge) window.NativeBridge.setDohConfig(enabled, 'cloudflare');
-    }
-
-    function toggleAdBlock(enabled) {
-      if (window.NativeBridge) window.NativeBridge.setAdBlockEnabled(enabled);
-    }
-
-    function refreshSystemStatus() {
+    // =======================================================================
+    // SCREEN 9: SETTINGS & ISP BYPASS
+    // =======================================================================
+    function syncSystemSettings() {
       if (!window.NativeBridge) return;
       try {
-        const st = JSON.parse(window.NativeBridge.getSystemStatusJson());
-        document.getElementById('dohToggle').checked = !!st.dohEnabled;
-        document.getElementById('adBlockToggle').checked = !!st.adBlockEnabled;
-        document.getElementById('blockedCountText').textContent = st.blockedAdsCount || 0;
-        document.getElementById('lanIpText').textContent = (st.lanIp || '127.0.0.1') + ':8765';
-        document.getElementById('activeTvBadge').textContent = st.activeTvName || 'NO TV';
-        document.getElementById('remoteNowPlaying').textContent = st.currentStreamTitle || 'พร้อมส่งสตรีมขึ้นทีวี';
+        const st = JSON.parse(NativeBridge.getSystemStatusJson());
+        document.getElementById("cfg-adblock-master").checked = !!st.adBlockEnabled;
+        document.getElementById("cfg-block-banners").checked = !!st.blockBanners;
+        document.getElementById("cfg-block-popups").checked = !!st.blockPopups;
+        document.getElementById("cfg-filter-short-ads").checked = !!st.filterShortAdClips;
+        document.getElementById("cfg-doh-enabled").checked = !!st.dohEnabled;
+        document.getElementById("cfg-deep-bypass").checked = !!st.deepWebViewBypass;
+        document.getElementById("lbl-blocked-ads-count").textContent = `บล็อกโฆษณาและป๊อปอัปไปแล้ว ${st.blockedAdsCount || 0} รายการ`;
+        activeDohProvider = st.dohProvider || "cloudflare";
+        updateDohProviderButtons();
       } catch (e) {}
+    }
+
+    function selectDohProvider(prov) {
+      activeDohProvider = prov;
+      updateDohProviderButtons();
+      pushSettingsToNative();
+    }
+
+    function updateDohProviderButtons() {
+      ["cloudflare", "google", "quad9"].forEach(p => {
+        const btn = document.getElementById("doh-btn-" + p);
+        if (btn) btn.classList.toggle("active", p === activeDohProvider);
+      });
+    }
+
+    function pushSettingsToNative() {
+      if (!window.NativeBridge) return;
+      const payload = {
+        adBlockEnabled: document.getElementById("cfg-adblock-master").checked,
+        blockBanners: document.getElementById("cfg-block-banners").checked,
+        blockPopups: document.getElementById("cfg-block-popups").checked,
+        filterShortAdClips: document.getElementById("cfg-filter-short-ads").checked,
+        dohEnabled: document.getElementById("cfg-doh-enabled").checked,
+        deepWebViewBypass: document.getElementById("cfg-deep-bypass").checked,
+        dohProvider: activeDohProvider
+      };
+      NativeBridge.updateSettingsJson(JSON.stringify(payload));
     }
 
     function escapeHtml(str) {
-      return String(str || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
     }
-
-    // Initial load
-    setTimeout(() => {
-      refreshSniffedVideos();
-      refreshSystemStatus();
-    }, 300);
   </script>
 </body>
 </html>

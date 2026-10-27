@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.wifi.WifiManager
 import android.util.Base64
 import okhttp3.Request
+import java.io.BufferedInputStream
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStream
@@ -20,17 +21,21 @@ data class ProxySessionConfig(
     val targetUrl: String,
     val referer: String,
     val userAgent: String,
-    val cookie: String
+    val cookie: String,
+    val forceHls: Boolean = false
 )
 
 object LocalStreamProxyServer {
 
-    private const val PORT = 8765
+    const val PORT = 8765
     private var serverSocket: ServerSocket? = null
     @Volatile
     private var isRunning = false
     private val executor = Executors.newCachedThreadPool()
     private val sessions = ConcurrentHashMap<String, ProxySessionConfig>()
+
+    @Volatile
+    var latestSessionId: String = ""
 
     fun startServer() {
         if (isRunning) return
@@ -48,17 +53,44 @@ object LocalStreamProxyServer {
         }
     }
 
-    fun registerStream(url: String, referer: String, userAgent: String, cookie: String, context: Context): String {
+    fun registerStream(
+        url: String,
+        referer: String,
+        userAgent: String,
+        cookie: String,
+        context: Context
+    ): String {
         startServer()
         val id = "s_${System.currentTimeMillis()}"
-        sessions[id] = ProxySessionConfig(url, referer, userAgent, cookie)
+        val lower = url.lowercase()
+        val isHlsLike = lower.contains(".m3u8") ||
+                lower.contains("master.txt") ||
+                lower.contains("index.txt") ||
+                lower.contains("playlist.txt") ||
+                lower.contains("/hls/")
+
+        sessions[id] = ProxySessionConfig(
+            targetUrl = url,
+            referer = referer,
+            userAgent = userAgent,
+            cookie = cookie,
+            forceHls = isHlsLike
+        )
+        latestSessionId = id
+
         val lanIp = getLocalLanIp(context)
-        val ext = if (url.lowercase().contains(".m3u8") || url.lowercase().contains("master.txt") || url.lowercase().contains("/hls/")) {
-            "stream.m3u8"
-        } else {
-            "stream.mp4"
-        }
+        val ext = if (isHlsLike) "stream.m3u8" else "stream.mp4"
         return "http://$lanIp:$PORT/$ext?sid=$id"
+    }
+
+    fun getSubtitleUrl(context: Context, format: String = "srt"): String {
+        val lanIp = getLocalLanIp(context)
+        return "http://$lanIp:$PORT/subtitle.$format?t=${System.currentTimeMillis()}"
+    }
+
+    fun getWebReceiverUrl(context: Context): String {
+        val lanIp = getLocalLanIp(context)
+        return "http://$lanIp:$PORT/tv"
     }
 
     fun getLocalLanIp(context: Context): String {
@@ -96,13 +128,14 @@ object LocalStreamProxyServer {
     private fun handleClient(socket: Socket) {
         socket.use { s ->
             try {
-                s.soTimeout = 30000
+                s.soTimeout = 35000
                 val reader = BufferedReader(InputStreamReader(s.getInputStream()))
                 val requestLine = reader.readLine() ?: return
                 val parts = requestLine.split(" ")
                 if (parts.size < 2) return
                 val method = parts[0].uppercase()
                 val fullPath = parts[1]
+                val pathOnly = fullPath.substringBefore("?")
 
                 var rangeHeader: String? = null
                 var hostHeader: String? = null
@@ -129,19 +162,60 @@ object LocalStreamProxyServer {
                     return
                 }
 
+                // 1. Subtitle endpoints (/subtitle.srt & /subtitle.vtt)
+                if (pathOnly.endsWith("/subtitle.srt")) {
+                    val srtBytes = SubtitleEngine.getFormattedSrt().toByteArray(Charsets.UTF_8)
+                    val header = "HTTP/1.1 200 OK\r\n" +
+                            "Content-Type: text/srt; charset=utf-8\r\n" +
+                            "Access-Control-Allow-Origin: *\r\n" +
+                            "Content-Length: ${srtBytes.size}\r\n" +
+                            "Connection: close\r\n\r\n"
+                    out.write(header.toByteArray())
+                    if (method != "HEAD") out.write(srtBytes)
+                    out.flush()
+                    return
+                }
+
+                if (pathOnly.endsWith("/subtitle.vtt")) {
+                    val vttBytes = SubtitleEngine.getFormattedVtt().toByteArray(Charsets.UTF_8)
+                    val header = "HTTP/1.1 200 OK\r\n" +
+                            "Content-Type: text/vtt; charset=utf-8\r\n" +
+                            "Access-Control-Allow-Origin: *\r\n" +
+                            "Content-Length: ${vttBytes.size}\r\n" +
+                            "Connection: close\r\n\r\n"
+                    out.write(header.toByteArray())
+                    if (method != "HEAD") out.write(vttBytes)
+                    out.flush()
+                    return
+                }
+
+                // 2. Smart TV Web Browser Receiver (/tv)
+                if (pathOnly == "/tv") {
+                    val html = buildWebReceiverHtml(hostHeader ?: "127.0.0.1:$PORT")
+                    val bytes = html.toByteArray(Charsets.UTF_8)
+                    val header = "HTTP/1.1 200 OK\r\n" +
+                            "Content-Type: text/html; charset=utf-8\r\n" +
+                            "Content-Length: ${bytes.size}\r\n" +
+                            "Connection: close\r\n\r\n"
+                    out.write(header.toByteArray())
+                    if (method != "HEAD") out.write(bytes)
+                    out.flush()
+                    return
+                }
+
                 val query = fullPath.substringAfter("?", "")
                 val params = parseQuery(query)
-                val sid = params["sid"]
+                val sid = params["sid"] ?: latestSessionId
                 val u64 = params["u"]
 
                 val config: ProxySessionConfig
                 val targetUrl: String
 
-                if (u64 != null && sid != null && sessions.containsKey(sid)) {
+                if (u64 != null && sessions.containsKey(sid)) {
                     val baseCfg = sessions[sid]!!
                     targetUrl = String(Base64.decode(u64, Base64.URL_SAFE or Base64.NO_WRAP))
                     config = baseCfg.copy(targetUrl = targetUrl)
-                } else if (sid != null && sessions.containsKey(sid)) {
+                } else if (sessions.containsKey(sid)) {
                     config = sessions[sid]!!
                     targetUrl = config.targetUrl
                 } else {
@@ -149,58 +223,99 @@ object LocalStreamProxyServer {
                     return
                 }
 
+                val isPlaylistEndpoint = pathOnly.endsWith(".m3u8")
+                val isSegmentEndpoint = pathOnly.endsWith(".ts")
+
+                // Build upstream request
                 val reqBuilder = Request.Builder().url(targetUrl)
                 if (config.referer.isNotBlank()) reqBuilder.header("Referer", config.referer)
                 if (config.userAgent.isNotBlank()) reqBuilder.header("User-Agent", config.userAgent)
                 if (config.cookie.isNotBlank()) reqBuilder.header("Cookie", config.cookie)
-                if (rangeHeader != null) reqBuilder.header("Range", rangeHeader)
+
+                // If Samsung TV sends a HEAD request on an MP4 stream, probe with bytes=0-0 if needed
+                if (method == "HEAD" && !isPlaylistEndpoint) {
+                    reqBuilder.head()
+                } else if (rangeHeader != null && !isPlaylistEndpoint) {
+                    reqBuilder.header("Range", rangeHeader)
+                }
 
                 DoHNetworkClient.client.newCall(reqBuilder.build()).execute().use { upstream ->
                     val code = upstream.code
                     val contentType = upstream.header("Content-Type") ?: ""
-                    val isM3u8 = targetUrl.lowercase().contains(".m3u8") ||
+
+                    // Peek first bytes if not a HEAD request to detect #EXTM3U in master.txt / index.txt
+                    val bodyStream = upstream.body?.byteStream()?.let { BufferedInputStream(it, 16384) }
+                    var startsWithExtM3u = false
+                    if (bodyStream != null && method != "HEAD" && !isSegmentEndpoint) {
+                        bodyStream.mark(64)
+                        val peekBuf = ByteArray(32)
+                        val peekRead = bodyStream.read(peekBuf)
+                        bodyStream.reset()
+                        if (peekRead > 0) {
+                            val peekStr = String(peekBuf, 0, peekRead, Charsets.UTF_8).trimStart()
+                            startsWithExtM3u = peekStr.startsWith("#EXTM3U")
+                        }
+                    }
+
+                    val treatAsM3u8 = startsWithExtM3u ||
+                            isPlaylistEndpoint ||
+                            targetUrl.lowercase().contains(".m3u8") ||
                             targetUrl.lowercase().contains("master.txt") ||
+                            targetUrl.lowercase().contains("index.txt") ||
                             contentType.contains("mpegurl", ignoreCase = true)
 
-                    if (isM3u8 && upstream.body != null) {
-                        val rawPlaylist = upstream.body!!.string()
+                    if (treatAsM3u8) {
+                        if (method == "HEAD") {
+                            val header = "HTTP/1.1 200 OK\r\n" +
+                                    "Content-Type: application/vnd.apple.mpegurl\r\n" +
+                                    "Access-Control-Allow-Origin: *\r\n" +
+                                    "transferMode.dlna.org: Streaming\r\n" +
+                                    "contentFeatures.dlna.org: DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000\r\n" +
+                                    "Connection: close\r\n\r\n"
+                            out.write(header.toByteArray())
+                            out.flush()
+                            return
+                        }
+
+                        val rawPlaylist = bodyStream?.bufferedReader(Charsets.UTF_8)?.readText() ?: ""
                         val proxyBase = "http://${hostHeader ?: "127.0.0.1:$PORT"}"
-                        val rewritten = rewriteM3u8(rawPlaylist, targetUrl, proxyBase, sid ?: "")
+                        val rewritten = rewriteM3u8(rawPlaylist, targetUrl, proxyBase, sid)
                         val bytes = rewritten.toByteArray(Charsets.UTF_8)
 
                         val header = "HTTP/1.1 200 OK\r\n" +
                                 "Content-Type: application/vnd.apple.mpegurl\r\n" +
                                 "Access-Control-Allow-Origin: *\r\n" +
                                 "Cache-Control: no-cache\r\n" +
+                                "transferMode.dlna.org: Streaming\r\n" +
+                                "contentFeatures.dlna.org: DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000\r\n" +
                                 "Content-Length: ${bytes.size}\r\n" +
                                 "Connection: close\r\n\r\n"
                         out.write(header.toByteArray())
-                        if (method != "HEAD") {
-                            out.write(bytes)
-                        }
+                        out.write(bytes)
                         out.flush()
                     } else {
-                        val statusText = if (code == 206) "206 Partial Content" else "$code OK"
+                        val statusText = if (code == 206) "206 Partial Content" else "200 OK"
                         val sb = StringBuilder()
                         sb.append("HTTP/1.1 $statusText\r\n")
                         sb.append("Access-Control-Allow-Origin: *\r\n")
                         val cType = when {
-                            targetUrl.lowercase().contains(".ts") -> "video/mp2t"
-                            contentType.isNotBlank() -> contentType
+                            isSegmentEndpoint || targetUrl.lowercase().contains(".ts") -> "video/mp2t"
+                            contentType.startsWith("video/", ignoreCase = true) -> contentType
                             else -> "video/mp4"
                         }
                         sb.append("Content-Type: $cType\r\n")
                         upstream.header("Content-Length")?.let { sb.append("Content-Length: $it\r\n") }
                         upstream.header("Content-Range")?.let { sb.append("Content-Range: $it\r\n") }
                         sb.append("Accept-Ranges: bytes\r\n")
+                        sb.append("transferMode.dlna.org: Streaming\r\n")
+                        sb.append("contentFeatures.dlna.org: DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000\r\n")
                         sb.append("Connection: close\r\n\r\n")
                         out.write(sb.toString().toByteArray())
 
-                        if (method != "HEAD" && upstream.body != null) {
-                            val inStream = upstream.body!!.byteStream()
-                            val buf = ByteArray(16384)
+                        if (method != "HEAD" && bodyStream != null) {
+                            val buf = ByteArray(32768)
                             var read: Int
-                            while (inStream.read(buf).also { read = it } != -1) {
+                            while (bodyStream.read(buf).also { read = it } != -1) {
                                 out.write(buf, 0, read)
                             }
                         }
@@ -208,14 +323,18 @@ object LocalStreamProxyServer {
                     }
                 }
             } catch (e: Exception) {
-                // Client disconnected or upstream timeout
+                // Client closed socket or timeout
             }
         }
     }
 
+    /**
+     * Rewrites all URLs inside an M3U8 playlist (including disguised master.txt & sub-playlists).
+     */
     private fun rewriteM3u8(raw: String, baseUrl: String, proxyBase: String, sid: String): String {
         val baseUri = try { URI(baseUrl) } catch (e: Exception) { null }
         val sb = StringBuilder()
+        var expectSubPlaylistOnNextLine = false
 
         for (rawLine in raw.lines()) {
             val line = rawLine.trim()
@@ -224,12 +343,16 @@ object LocalStreamProxyServer {
                 continue
             }
             if (line.startsWith("#")) {
-                // Also rewrite URI="..." inside #EXT-X-KEY or #EXT-X-MAP if present
+                if (line.startsWith("#EXT-X-STREAM-INF", ignoreCase = true)) {
+                    expectSubPlaylistOnNextLine = true
+                }
                 if (line.contains("URI=\"")) {
                     val rewrittenTag = Regex("""URI="([^"]+)"""").replace(line) { m ->
                         val abs = resolveUrl(baseUri, baseUrl, m.groupValues[1])
                         val b64 = Base64.encodeToString(abs.toByteArray(), Base64.URL_SAFE or Base64.NO_WRAP)
-                        """URI="$proxyBase/seg?sid=$sid&u=$b64""""
+                        val isSub = line.startsWith("#EXT-X-MEDIA", ignoreCase = true) || abs.lowercase().contains(".m3u8")
+                        val endp = if (isSub) "sub.m3u8" else "seg.ts"
+                        """URI="$proxyBase/$endp?sid=$sid&u=$b64""""
                     }
                     sb.append(rewrittenTag).append("\n")
                 } else {
@@ -238,7 +361,16 @@ object LocalStreamProxyServer {
             } else {
                 val absUrl = resolveUrl(baseUri, baseUrl, line)
                 val b64 = Base64.encodeToString(absUrl.toByteArray(), Base64.URL_SAFE or Base64.NO_WRAP)
-                val pathName = if (absUrl.lowercase().contains(".m3u8")) "sub.m3u8" else "seg.ts"
+                val lowerAbs = absUrl.lowercase()
+                val isSubPlaylist = expectSubPlaylistOnNextLine ||
+                        lowerAbs.contains(".m3u8") ||
+                        lowerAbs.contains("master.txt") ||
+                        lowerAbs.contains("index.txt") ||
+                        lowerAbs.contains("playlist.txt") ||
+                        lowerAbs.contains("chunklist")
+                expectSubPlaylistOnNextLine = false
+
+                val pathName = if (isSubPlaylist) "sub.m3u8" else "seg.ts"
                 sb.append("$proxyBase/$pathName?sid=$sid&u=$b64\n")
             }
         }
@@ -255,6 +387,45 @@ object LocalStreamProxyServer {
         } catch (e: Exception) {
             baseUrl.substringBeforeLast("/") + "/" + relativeOrAbs.trimStart('/')
         }
+    }
+
+    private fun buildWebReceiverHtml(hostPort: String): String {
+        val cfg = sessions[latestSessionId]
+        val isHls = cfg?.forceHls ?: true
+        val streamPath = if (isHls) "stream.m3u8" else "stream.mp4"
+        val streamUrl = "http://$hostPort/$streamPath?sid=$latestSessionId"
+        val vttUrl = "http://$hostPort/subtitle.vtt?t=${System.currentTimeMillis()}"
+        return """<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>DreamHub TV Receiver</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body { margin: 0; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+    video { width: 100vw; height: 100vh; object-fit: contain; }
+    video::cue { background: rgba(0,0,0,0.65); color: #fff; font-size: 1.4em; }
+  </style>
+</head>
+<body>
+  <video id="v" controls autoplay crossorigin="anonymous">
+    <track kind="subtitles" label="Thai / Custom" srclang="th" src="$vttUrl" default>
+  </video>
+  <script>
+    var video = document.getElementById('v');
+    var src = "$streamUrl";
+    if (src.indexOf('.m3u8') !== -1 && window.Hls && Hls.isSupported()) {
+      var hls = new Hls();
+      hls.loadSource(src);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function() { video.play(); });
+    } else {
+      video.src = src;
+      video.play();
+    }
+  </script>
+</body>
+</html>"""
     }
 
     private fun parseQuery(query: String): Map<String, String> {

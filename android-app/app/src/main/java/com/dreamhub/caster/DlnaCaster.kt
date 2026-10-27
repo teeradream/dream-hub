@@ -34,8 +34,12 @@ object DlnaCaster {
     var currentStreamUrl: String = ""
     @Volatile
     var isPlaying: Boolean = false
+    @Volatile
+    var currentPositionSec: Int = 0
+    @Volatile
+    var currentDurationSec: Int = 0
 
-    fun discoverDevices(context: Context, timeoutMs: Int = 3200): List<TvDevice> {
+    fun discoverDevices(context: Context, timeoutMs: Int = 3000): List<TvDevice> {
         val wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
         val lock = wm?.createMulticastLock("dreamhub_ssdp_lock")?.apply {
             setReferenceCounted(true)
@@ -52,7 +56,7 @@ object DlnaCaster {
 
         try {
             DatagramSocket().use { socket ->
-                socket.soTimeout = 750
+                socket.soTimeout = 700
                 socket.broadcast = true
                 val multicastAddr = InetAddress.getByName("239.255.255.250")
 
@@ -86,13 +90,10 @@ object DlnaCaster {
                         ) {
                             discoveredLocations.add(loc)
                         }
-                    } catch (e: Exception) {
-                        // Socket timeout slice
-                    }
+                    } catch (e: Exception) {}
                 }
             }
         } catch (e: Exception) {
-            // Ignore network error
         } finally {
             try {
                 if (lock?.isHeld == true) lock.release()
@@ -110,7 +111,7 @@ object DlnaCaster {
         return try {
             val req = Request.Builder()
                 .url(locationUrl)
-                .header("User-Agent", "DreamHubCaster/1.0 UPnP/1.1 DLNADOC/1.50")
+                .header("User-Agent", "DreamHubCaster/2.2 UPnP/1.1 DLNADOC/1.50")
                 .build()
 
             DoHNetworkClient.client.newCall(req).execute().use { res ->
@@ -126,14 +127,12 @@ object DlnaCaster {
                 val uri = URI(locationUrl)
                 val baseUrl = "${uri.scheme}://${uri.host}:${uri.port}"
 
-                // Extract AVTransport controlURL
                 val avBlock = xml.substringAfter("AVTransport", "")
                 val controlPath = extractXmlTag(avBlock, "controlURL")
                 if (controlPath.isBlank()) return null
 
                 val avUrl = resolveControlUrl(baseUrl, locationUrl, controlPath)
 
-                // Extract RenderingControl controlURL (for Volume)
                 val rcBlock = xml.substringAfter("RenderingControl", "")
                 val rcPath = extractXmlTag(rcBlock, "controlURL")
                 val rcUrl = if (rcPath.isNotBlank()) resolveControlUrl(baseUrl, locationUrl, rcPath) else null
@@ -175,13 +174,18 @@ object DlnaCaster {
         return null
     }
 
-    fun castToTv(device: TvDevice, streamUrl: String, title: String): Boolean {
+    fun castToTv(
+        device: TvDevice,
+        streamUrl: String,
+        title: String,
+        subtitleSrtUrl: String? = null
+    ): Boolean {
         return try {
             activeDevice = device
             currentStreamUrl = streamUrl
             currentStreamTitle = title
+            currentPositionSec = 0
 
-            // 1. Stop current playback cleanly
             sendSoap(
                 device.avTransportUrl,
                 "urn:schemas-upnp-org:service:AVTransport:1",
@@ -189,15 +193,22 @@ object DlnaCaster {
                 "<InstanceID>0</InstanceID>"
             )
 
-            val isHls = streamUrl.lowercase().contains(".m3u8")
-            val mime = if (isHls) "application/x-mpegURL" else "video/mp4"
+            val lower = streamUrl.lowercase()
+            val isHls = lower.contains(".m3u8") || lower.contains("master.txt") || lower.contains("/hls/")
+            val mime = if (isHls) "application/vnd.apple.mpegurl" else "video/mp4"
             val escapedUrl = escapeXml(streamUrl)
             val escapedTitle = escapeXml(title)
 
-            val didl = """<DIDL-Lite xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/" xmlns:dlna="urn:schemas-dlna-org:metadata-1-0/"><item id="0" parentID="-1" restricted="1"><dc:title>$escapedTitle</dc:title><upnp:class>object.item.videoItem.movie</upnp:class><res protocolInfo="http-get:*:$mime:DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000">$escapedUrl</res></item></DIDL-Lite>"""
+            val subMetadata = if (!subtitleSrtUrl.isNullOrBlank()) {
+                val escSub = escapeXml(subtitleSrtUrl)
+                """<sec:CaptionInfoEx sec:type="srt">$escSub</sec:CaptionInfoEx><sec:CaptionInfo sec:type="srt">$escSub</sec:CaptionInfo><res protocolInfo="http-get:*:text/srt:*">$escSub</res>"""
+            } else {
+                ""
+            }
+
+            val didl = """<DIDL-Lite xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/" xmlns:dlna="urn:schemas-dlna-org:metadata-1-0/" xmlns:sec="http://www.sec.co.kr/"><item id="0" parentID="-1" restricted="1"><dc:title>$escapedTitle</dc:title><upnp:class>object.item.videoItem.movie</upnp:class><res protocolInfo="http-get:*:$mime:DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000">$escapedUrl</res>$subMetadata</item></DIDL-Lite>"""
             val escapedDidl = escapeXml(didl)
 
-            // 2. SetAVTransportURI
             val setOk = sendSoap(
                 device.avTransportUrl,
                 "urn:schemas-upnp-org:service:AVTransport:1",
@@ -205,7 +216,6 @@ object DlnaCaster {
                 "<InstanceID>0</InstanceID><CurrentURI>$escapedUrl</CurrentURI><CurrentURIMetaData>$escapedDidl</CurrentURIMetaData>"
             )
 
-            // 3. Play
             val playOk = sendSoap(
                 device.avTransportUrl,
                 "urn:schemas-upnp-org:service:AVTransport:1",
@@ -244,6 +254,7 @@ object DlnaCaster {
     fun stop(): Boolean {
         val dev = activeDevice ?: return false
         isPlaying = false
+        currentPositionSec = 0
         return sendSoap(
             dev.avTransportUrl,
             "urn:schemas-upnp-org:service:AVTransport:1",
@@ -255,6 +266,7 @@ object DlnaCaster {
     fun seekToSeconds(seconds: Int): Boolean {
         val dev = activeDevice ?: return false
         val safeSec = seconds.coerceAtLeast(0)
+        currentPositionSec = safeSec
         val hh = safeSec / 3600
         val mm = (safeSec % 3600) / 60
         val ss = safeSec % 60
@@ -265,6 +277,54 @@ object DlnaCaster {
             "Seek",
             "<InstanceID>0</InstanceID><Unit>REL_TIME</Unit><Target>$target</Target>"
         )
+    }
+
+    /**
+     * Seeks relative by deltaSec (e.g. -10s or +10s) by querying current TV position first.
+     */
+    fun seekRelativeSeconds(deltaSec: Int): Int {
+        queryPositionInfo()
+        val nextSec = (currentPositionSec + deltaSec).coerceAtLeast(0)
+        seekToSeconds(nextSec)
+        return nextSec
+    }
+
+    fun queryPositionInfo(): JSONObject {
+        val dev = activeDevice
+        if (dev != null) {
+            val xml = sendSoapWithResponse(
+                dev.avTransportUrl,
+                "urn:schemas-upnp-org:service:AVTransport:1",
+                "GetPositionInfo",
+                "<InstanceID>0</InstanceID>"
+            )
+            if (xml.isNotBlank()) {
+                val relTime = extractXmlTag(xml, "RelTime")
+                val trackDur = extractXmlTag(xml, "TrackDuration")
+                val parsedPos = parseHhMmSsToSeconds(relTime)
+                val parsedDur = parseHhMmSsToSeconds(trackDur)
+                if (parsedPos >= 0) currentPositionSec = parsedPos
+                if (parsedDur > 0) currentDurationSec = parsedDur
+            }
+        }
+        return JSONObject().apply {
+            put("positionSec", currentPositionSec)
+            put("durationSec", currentDurationSec)
+            put("isPlaying", isPlaying)
+        }
+    }
+
+    private fun parseHhMmSsToSeconds(timeStr: String): Int {
+        if (timeStr.isBlank() || timeStr.contains("NOT_IMPLEMENTED", true)) return -1
+        return try {
+            val clean = timeStr.substringBefore(".")
+            val parts = clean.split(":")
+            if (parts.size == 3) {
+                parts[0].toInt() * 3600 + parts[1].toInt() * 60 + parts[2].toInt()
+            } else -1
+        } catch (e: Exception) {
+            -1
+        }
     }
 
     fun setVolume(volumePercent: Int): Boolean {
@@ -280,6 +340,10 @@ object DlnaCaster {
     }
 
     private fun sendSoap(controlUrl: String, serviceType: String, action: String, bodyArgs: String): Boolean {
+        return sendSoapWithResponse(controlUrl, serviceType, action, bodyArgs).isNotEmpty()
+    }
+
+    private fun sendSoapWithResponse(controlUrl: String, serviceType: String, action: String, bodyArgs: String): String {
         return try {
             val envelope = """<?xml version="1.0" encoding="utf-8"?>
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
@@ -294,15 +358,19 @@ object DlnaCaster {
                 .url(controlUrl)
                 .header("Content-Type", "text/xml; charset=\"utf-8\"")
                 .header("SOAPAction", "\"$serviceType#$action\"")
-                .header("User-Agent", "DreamHubCaster/1.0 DLNADOC/1.50")
+                .header("User-Agent", "DreamHubCaster/2.2 DLNADOC/1.50")
                 .post(envelope.toRequestBody("text/xml; charset=utf-8".toMediaType()))
                 .build()
 
             DoHNetworkClient.client.newCall(req).execute().use { res ->
-                res.isSuccessful
+                if (res.isSuccessful) {
+                    res.body?.string() ?: "OK"
+                } else {
+                    ""
+                }
             }
         } catch (e: Exception) {
-            false
+            ""
         }
     }
 
