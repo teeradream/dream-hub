@@ -83,6 +83,29 @@ object LocalStreamProxyServer {
         return "http://$lanIp:$PORT/$ext?sid=$id"
     }
 
+    fun registerLocalInAppStream(
+        url: String,
+        referer: String,
+        userAgent: String,
+        cookie: String
+    ): String {
+        startServer()
+        val id = "s_${System.currentTimeMillis()}"
+        val lower = url.lowercase()
+        val isMp4 = lower.contains(".mp4") || lower.contains(".mkv") || lower.contains(".webm")
+        val isHlsLike = !isMp4
+        sessions[id] = ProxySessionConfig(
+            targetUrl = url,
+            referer = referer,
+            userAgent = userAgent,
+            cookie = cookie,
+            forceHls = isHlsLike
+        )
+        latestSessionId = id
+        val ext = if (isHlsLike) "stream.m3u8" else "stream.mp4"
+        return "http://127.0.0.1:$PORT/$ext?sid=$id"
+    }
+
     fun getSubtitleUrl(context: Context, format: String = "srt"): String {
         val lanIp = getLocalLanIp(context)
         return "http://$lanIp:$PORT/subtitle.$format?t=${System.currentTimeMillis()}"

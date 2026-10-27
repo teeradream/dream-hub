@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>DreamHub Caster — Liquid Glass</title>
+  <script src="hls.min.js"></script>
   <style>
     :root {
       --bg-deep: #060911;
@@ -358,7 +359,7 @@
   <div id="screen-videolist" class="hidden">
     <div class="liquid-header">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <button onclick="returnToBrowserOrHome()" style="background: transparent; border: none; color: #fff; padding: 6px; cursor: pointer;">
+        <button onclick="goBackStep()" style="background: transparent; border: none; color: #fff; padding: 6px; cursor: pointer;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
         </button>
         <span style="font-size: 15px; font-weight: 700;">รายการวิดีโอ</span>
@@ -400,7 +401,7 @@
   <div id="screen-devices" class="hidden">
     <div class="liquid-header">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <button onclick="returnToBrowserOrHome()" style="background: transparent; border: none; color: #fff; padding: 6px; cursor: pointer;">
+        <button onclick="goBackStep()" style="background: transparent; border: none; color: #fff; padding: 6px; cursor: pointer;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
         </button>
         <div>
@@ -542,7 +543,7 @@
   <div id="screen-settings" class="hidden">
     <div class="liquid-header">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <button onclick="returnToBrowserOrHome()" style="background: transparent; border: none; color: #fff; padding: 6px; cursor: pointer;">
+        <button onclick="goBackStep()" style="background: transparent; border: none; color: #fff; padding: 6px; cursor: pointer;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
         </button>
         <span style="font-size: 15px; font-weight: 700;">การตั้งค่า & บล็อกโฆษณาเว็บหนัง</span>
@@ -621,7 +622,7 @@
   <div id="screen-iptv" class="hidden">
     <div class="liquid-header">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <button onclick="returnToBrowserOrHome()" style="background: transparent; border: none; color: #fff; padding: 6px; cursor: pointer;">
+        <button onclick="goBackStep()" style="background: transparent; border: none; color: #fff; padding: 6px; cursor: pointer;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
         </button>
         <span style="font-size: 15px; font-weight: 700;">ระบบ IPTV (M3U / M3U8)</span>
@@ -673,7 +674,7 @@
   <!-- ===================================================================== -->
   <!-- OVERLAY: SIDE NAVIGATION DRAWER (Screen 2)                            -->
   <!-- ===================================================================== -->
-  <div id="modal-drawer" class="liquid-modal-backdrop hidden" style="padding: 0; justify-content: flex-start;" onclick="if(event.target===this) returnToBrowserOrHome()">
+  <div id="modal-drawer" class="liquid-modal-backdrop hidden" style="padding: 0; justify-content: flex-start;" onclick="if(event.target===this) goBackStep()">
     <div class="drawer-panel">
       <div>
         <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 14px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.12);">
@@ -997,9 +998,38 @@
     }
 
     // =======================================================================
-    // SCREEN NAVIGATION CONTROLLER
+    // SCREEN NAVIGATION CONTROLLER (STEP-BY-STEP CHRONOLOGICAL BACK STACK)
     // =======================================================================
-    window.showScreen = function(screen) {
+    let uiScreenStack = [];
+    let currentScreen = "home";
+    let iptvTier = "lists";
+
+    window.pushScreenToStack = function(scr) {
+      if (!scr || scr === "drawer" || scr === "subtitles") return;
+      if (uiScreenStack[uiScreenStack.length - 1] !== scr) {
+        uiScreenStack.push(scr);
+      }
+    };
+
+    window.showScreen = function(screen, pushHistory = true, explicitPrev = null) {
+      if (screen === "drawer") {
+        document.getElementById("modal-drawer").classList.remove("hidden");
+        return;
+      }
+      if (screen === "subtitles") {
+        openSubtitleSearchModal();
+        return;
+      }
+
+      const prevToRecord = explicitPrev || currentScreen;
+      if (pushHistory && prevToRecord && prevToRecord !== screen && prevToRecord !== "drawer" && prevToRecord !== "subtitles") {
+        if (uiScreenStack[uiScreenStack.length - 1] !== prevToRecord) {
+          uiScreenStack.push(prevToRecord);
+        }
+      }
+
+      currentScreen = screen;
+
       const screens = ["home", "tabs", "videolist", "devices", "player", "settings", "iptv"];
       screens.forEach(s => {
         const el = document.getElementById("screen-" + s);
@@ -1008,15 +1038,11 @@
       document.getElementById("modal-drawer").classList.add("hidden");
       document.getElementById("modal-subtitles").classList.add("hidden");
 
-      if (screen === "drawer") {
-        document.getElementById("screen-home").classList.remove("hidden");
-        document.getElementById("modal-drawer").classList.remove("hidden");
-      } else if (screen === "subtitles") {
-        document.getElementById("screen-player").classList.remove("hidden");
-        openSubtitleSearchModal();
-      } else {
-        const target = document.getElementById("screen-" + screen);
-        if (target) target.classList.remove("hidden");
+      const target = document.getElementById("screen-" + screen);
+      if (target) target.classList.remove("hidden");
+
+      if (window.NativeBridge && NativeBridge.syncScreenStateFromJs) {
+        NativeBridge.syncScreenStateFromJs(screen);
       }
 
       if (screen === "videolist") renderDetectedVideoList();
@@ -1025,6 +1051,55 @@
       if (screen === "settings") syncSystemSettings();
       if (screen === "iptv") renderIptvPlaylists();
     };
+
+    /**
+     * Step-by-step Back Navigation Handler:
+     * 1. Closes any active modal/drawer first.
+     * 2. If in IPTV Tier 2 (Channel Player List), steps back to Tier 1 (Playlist Manager).
+     * 3. Pops the previous screen from uiScreenStack in exact reverse order of entry.
+     */
+    window.handleBackPress = function() {
+      const modals = ["modal-subtitles", "modal-stream-actions", "modal-add-iptv", "modal-add-site", "modal-drawer"];
+      for (const mId of modals) {
+        const el = document.getElementById(mId);
+        if (el && !el.classList.contains("hidden")) {
+          el.classList.add("hidden");
+          return "CLOSED_MODAL";
+        }
+      }
+
+      if (currentScreen === "iptv" && iptvTier === "player") {
+        switchIptvTier("lists");
+        return "IPTV_TIER_LISTS";
+      }
+
+      while (uiScreenStack.length > 0) {
+        const prev = uiScreenStack.pop();
+        if (prev && prev !== currentScreen) {
+          if (prev === "browser") {
+            currentScreen = "browser";
+            if (window.NativeBridge && NativeBridge.syncScreenStateFromJs) {
+              NativeBridge.syncScreenStateFromJs("browser");
+            }
+            return "POPPED_BROWSER";
+          } else {
+            window.showScreen(prev, false);
+            return "POPPED_" + prev;
+          }
+        }
+      }
+
+      if (currentScreen !== "home" && currentScreen !== "browser") {
+        window.showScreen("home", false);
+        return "FALLBACK_HOME";
+      }
+
+      return "ROOT";
+    };
+
+    function goBackStep() {
+      window.handleBackPress();
+    }
 
     function returnToBrowserOrHome() {
       document.getElementById("modal-drawer").classList.add("hidden");
@@ -1218,8 +1293,17 @@
     }
 
     // =======================================================================
-    // SCREEN 8: CONDITIONAL PLAYER & CAST CONTROLLER (WITH -10s / +10s)
+    // SCREEN 8: CONDITIONAL PLAYER & CAST CONTROLLER (WITH -10s / +10s & HLS.JS)
     // =======================================================================
+    function destroyActiveHls() {
+      if (window.__activeHls) {
+        try {
+          window.__activeHls.destroy();
+        } catch (e) {}
+        window.__activeHls = null;
+      }
+    }
+
     function launchPlayerScreen(streamObj, isCastingToTv) {
       selectedStreamItem = streamObj;
       showScreen("player");
@@ -1230,16 +1314,51 @@
       }
 
       const videoEl = document.getElementById("inapp-video");
-      const useProxy = document.getElementById("chk-route-proxy") ? document.getElementById("chk-route-proxy").checked : true;
+      destroyActiveHls();
 
       if (!isCastingToTv) {
         let playUrl = streamObj.url;
-        if (window.NativeBridge && (useProxy || playUrl.toLowerCase().includes("master.txt") || playUrl.toLowerCase().includes("index.txt"))) {
+        // Route through LocalStreamProxyServer (127.0.0.1:8765) so Android WebView bypasses CORS, HTTP mixed-content, SSL & ISP blocks
+        if (window.NativeBridge && NativeBridge.prepareLocalInAppStreamUrl) {
+          playUrl = NativeBridge.prepareLocalInAppStreamUrl(streamObj.url, streamObj.referer || "");
+        } else if (window.NativeBridge && NativeBridge.prepareProxiedStreamUrl) {
           playUrl = NativeBridge.prepareProxiedStreamUrl(streamObj.url, streamObj.referer || "");
         }
-        videoEl.src = playUrl;
-        videoEl.play().catch(() => {});
-        document.getElementById("player-subtitle-status").textContent = "กำลังเล่นบนตัวเล่นภายในแอป";
+
+        const isHlsStream = playUrl.toLowerCase().includes(".m3u8") ||
+                            streamObj.url.toLowerCase().includes(".m3u8") ||
+                            streamObj.url.toLowerCase().includes("master.txt") ||
+                            streamObj.url.toLowerCase().includes("index.txt");
+
+        if (isHlsStream && window.Hls && Hls.isSupported()) {
+          const hls = new Hls({
+            enableWorker: true,
+            lowLatencyMode: true,
+            backBufferLength: 60
+          });
+          window.__activeHls = hls;
+          hls.loadSource(playUrl);
+          hls.attachMedia(videoEl);
+          hls.on(Hls.Events.MANIFEST_PARSED, function() {
+            videoEl.play().catch(() => {});
+          });
+          hls.on(Hls.Events.ERROR, function(event, data) {
+            if (data && data.fatal) {
+              if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                hls.startLoad();
+              } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                hls.recoverMediaError();
+              } else {
+                videoEl.src = playUrl;
+                videoEl.play().catch(() => {});
+              }
+            }
+          });
+        } else {
+          videoEl.src = playUrl;
+          videoEl.play().catch(() => {});
+        }
+        document.getElementById("player-subtitle-status").textContent = "กำลังเล่นบนตัวเล่นภายในแอป (HLS / MP4)";
       } else {
         videoEl.pause();
         document.getElementById("player-subtitle-status").textContent = "กำลังแคสต์ขึ้นทีวี • กด -10s / +10s เพื่อกรอเวลาได้";
@@ -1247,10 +1366,11 @@
     }
 
     function minimizePlayerScreen() {
-      returnToBrowserOrHome();
+      goBackStep();
     }
 
     function stopAndClosePlayer() {
+      destroyActiveHls();
       const videoEl = document.getElementById("inapp-video");
       videoEl.pause();
       videoEl.removeAttribute("src");
@@ -1258,10 +1378,11 @@
         NativeBridge.remoteStop();
         NativeBridge.setVideoActiveState(false);
       }
-      returnToBrowserOrHome();
+      goBackStep();
     }
 
     window.onNativeStopAll = function() {
+      destroyActiveHls();
       const videoEl = document.getElementById("inapp-video");
       if (videoEl) {
         videoEl.pause();
@@ -1271,8 +1392,8 @@
 
     function seekByDelta(deltaSeconds) {
       const videoEl = document.getElementById("inapp-video");
-      if (videoEl && videoEl.src && !videoEl.paused) {
-        videoEl.currentTime = Math.max(0, videoEl.currentTime + deltaSeconds);
+      if (videoEl && (videoEl.src || window.__activeHls)) {
+        videoEl.currentTime = Math.max(0, (videoEl.currentTime || 0) + deltaSeconds);
       }
       if (window.NativeBridge) {
         const nextSec = NativeBridge.remoteSeekRelative(deltaSeconds);
@@ -1286,7 +1407,7 @@
     function onSeekbarChange(secVal) {
       const sec = parseInt(secVal, 10) || 0;
       const videoEl = document.getElementById("inapp-video");
-      if (videoEl && videoEl.src) {
+      if (videoEl && (videoEl.src || window.__activeHls)) {
         videoEl.currentTime = sec;
       }
       if (window.NativeBridge) {
@@ -1297,8 +1418,8 @@
 
     function togglePlayPauseMain() {
       const videoEl = document.getElementById("inapp-video");
-      if (videoEl && videoEl.src) {
-        if (videoEl.paused) videoEl.play();
+      if (videoEl && (videoEl.src || window.__activeHls)) {
+        if (videoEl.paused) videoEl.play().catch(() => {});
         else videoEl.pause();
       }
       if (window.NativeBridge) {
@@ -1433,6 +1554,7 @@
     }
 
     function switchIptvTier(tier) {
+      iptvTier = tier;
       document.getElementById("iptv-seg-lists").classList.toggle("active", tier === "lists");
       document.getElementById("iptv-seg-player").classList.toggle("active", tier === "player");
       document.getElementById("iptv-tier-lists").classList.toggle("hidden", tier !== "lists");

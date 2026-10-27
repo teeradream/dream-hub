@@ -351,7 +351,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(root)
     }
 
-    private fun showHudScreen(screen: String) {
+    private fun showHudScreen(screen: String, pushHistory: Boolean = true) {
+        val prevScreen = currentHudScreen
         currentHudScreen = screen
         if (screen == "browser") {
             if (currentBrowserUrl == HOME_URI) {
@@ -359,19 +360,22 @@ class MainActivity : AppCompatActivity() {
                 topBarContainer.visibility = View.VISIBLE
                 browserWebView.visibility = View.GONE
                 hudWebView.visibility = View.VISIBLE
-                notifyHud("window.showScreen && window.showScreen('home');")
+                notifyHud("window.showScreen && window.showScreen('home', $pushHistory, '$prevScreen');")
             } else {
                 topBarContainer.visibility = View.VISIBLE
                 hudWebView.visibility = View.GONE
                 browserWebView.visibility = View.VISIBLE
+                if (pushHistory && prevScreen != "browser") {
+                    notifyHud("window.pushScreenToStack && window.pushScreenToStack('$prevScreen');")
+                }
             }
         } else {
-            // Hide native top bar on full-screen subpages (videolist, iptv, settings, player, subtitles)
-            val hideNativeTop = screen in listOf("videolist", "iptv", "settings", "player", "subtitles")
+            // Keep native top bar visible on 'home', 'drawer', 'tabs'; hide on full-screen subpages
+            val hideNativeTop = screen in listOf("videolist", "iptv", "settings", "player", "subtitles", "devices")
             topBarContainer.visibility = if (hideNativeTop) View.GONE else View.VISIBLE
             browserWebView.visibility = View.GONE
             hudWebView.visibility = View.VISIBLE
-            notifyHud("window.showScreen && window.showScreen('$screen');")
+            notifyHud("window.showScreen && window.showScreen('$screen', $pushHistory, '$prevScreen');")
         }
         updateTopBarState()
     }
@@ -402,10 +406,14 @@ class MainActivity : AppCompatActivity() {
         updateActiveTabRecord(targetUrl, targetUrl)
         saveLastVisitedUrl(targetUrl)
 
+        val prevScreen = currentHudScreen
         topBarContainer.visibility = View.VISIBLE
         hudWebView.visibility = View.GONE
         browserWebView.visibility = View.VISIBLE
         currentHudScreen = "browser"
+        if (prevScreen != "browser") {
+            notifyHud("window.pushScreenToStack && window.pushScreenToStack('$prevScreen');")
+        }
         updateTopBarState()
 
         browserWebView.loadUrl(targetUrl)
@@ -584,7 +592,7 @@ class MainActivity : AppCompatActivity() {
         hudWebView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                notifyHud("window.showScreen && window.showScreen('$currentHudScreen');")
+                notifyHud("window.showScreen && window.showScreen('$currentHudScreen', false);")
             }
         }
         hudWebView.loadUrl("file:///android_asset/cyber_ui.html")
@@ -729,7 +737,32 @@ class MainActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun switchScreenFromJs(screen: String) {
-            runOnUiThread { showHudScreen(screen) }
+            runOnUiThread { showHudScreen(screen, true) }
+        }
+
+        @JavascriptInterface
+        fun syncScreenStateFromJs(screen: String) {
+            runOnUiThread {
+                currentHudScreen = screen
+                if (screen == "browser") {
+                    if (currentBrowserUrl == HOME_URI) {
+                        currentHudScreen = "home"
+                        topBarContainer.visibility = View.VISIBLE
+                        browserWebView.visibility = View.GONE
+                        hudWebView.visibility = View.VISIBLE
+                    } else {
+                        topBarContainer.visibility = View.VISIBLE
+                        hudWebView.visibility = View.GONE
+                        browserWebView.visibility = View.VISIBLE
+                    }
+                } else {
+                    val hideNativeTop = screen in listOf("videolist", "iptv", "settings", "player", "subtitles", "devices")
+                    topBarContainer.visibility = if (hideNativeTop) View.GONE else View.VISIBLE
+                    browserWebView.visibility = View.GONE
+                    hudWebView.visibility = View.VISIBLE
+                }
+                updateTopBarState()
+            }
         }
 
         @JavascriptInterface
@@ -836,6 +869,17 @@ class MainActivity : AppCompatActivity() {
                 userAgent = DEFAULT_UA,
                 cookie = cookie,
                 context = applicationContext
+            )
+        }
+
+        @JavascriptInterface
+        fun prepareLocalInAppStreamUrl(url: String, referer: String): String {
+            val cookie = try { CookieManager.getInstance().getCookie(url) ?: "" } catch (e: Exception) { "" }
+            return LocalStreamProxyServer.registerLocalInAppStream(
+                url = url,
+                referer = referer.ifBlank { currentBrowserUrl },
+                userAgent = DEFAULT_UA,
+                cookie = cookie
             )
         }
 
@@ -1078,18 +1122,34 @@ class MainActivity : AppCompatActivity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (currentHudScreen != "browser" && currentHudScreen != "home") {
-            if (currentBrowserUrl != HOME_URI) {
-                showHudScreen("browser")
-            } else {
-                showHudScreen("home")
+        // Step-by-step chronological back navigation
+        if (currentHudScreen == "browser") {
+            if (browserWebView.canGoBack()) {
+                browserWebView.goBack()
+                return
             }
-            return
+            if (::hudWebView.isInitialized) {
+                hudWebView.evaluateJavascript("window.handleBackPress ? window.handleBackPress() : 'ROOT'") { result ->
+                    val clean = result?.trim()?.removeSurrounding("\"") ?: "ROOT"
+                    if (clean == "ROOT") {
+                        if (currentBrowserUrl != HOME_URI) {
+                            openUrlInCurrentTab(HOME_URI)
+                        } else {
+                            super.onBackPressed()
+                        }
+                    }
+                }
+                return
+            }
         }
-        if (currentHudScreen == "browser" && browserWebView.canGoBack()) {
-            browserWebView.goBack()
-        } else if (currentHudScreen == "browser" && currentBrowserUrl != HOME_URI) {
-            openUrlInCurrentTab(HOME_URI)
+
+        if (::hudWebView.isInitialized) {
+            hudWebView.evaluateJavascript("window.handleBackPress ? window.handleBackPress() : 'ROOT'") { result ->
+                val clean = result?.trim()?.removeSurrounding("\"") ?: "ROOT"
+                if (clean == "ROOT") {
+                    super.onBackPressed()
+                }
+            }
         } else {
             super.onBackPressed()
         }

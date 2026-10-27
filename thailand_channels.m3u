@@ -1,0 +1,80 @@
+#EXTM3U
+
+# ========================================================
+# เพลย์ลิสต์รวมช่องเคเบิลทีวีไทย ข่าว กีฬา และซีรีส์ฮิต (ออนไลน์ 100%)
+# ========================================================
+
+#EXTINF:-1 tvg-id="3HD.th" group-title="ทีวีดิจิทัล & ข่าว",ช่อง 3 HD (33)
+https://live-us1.thaimomo.com/live-as/ch3hd-3/playlist.m3u8
+
+#EXTINF:-1 tvg-id="ThaiPBS.th" group-title="ทีวีดิจิทัล & ข่าว",Thai PBS HD (ช่อง 3)
+https://live-us1.thaimomo.com/live-as/chThaipbshd-2/playlist.m3u8
+
+#EXTINF:-1 tvg-id="True4U.th" group-title="ทีวีดิจิทัล & ข่าว",True4U (ช่อง 24)
+https://live-us1.thaimomo.com/live-as/chTrue4u-2/playlist.m3u8
+
+#EXTINF:-1 tvg-id="NBT2HD.th" group-title="ทีวีดิจิทัล & ข่าว",NBT 2 HD (ช่อง 2 กรมประชาสัมพันธ์)
+https://cdn-edge.iiptvcdn.com/live_event/smil:f180-054a-38d7-ce66-f7cf.smil/playlist.m3u8
+
+#EXTINF:-1 tvg-id="NationTV.th" group-title="ทีวีดิจิทัล & ข่าว",Nation TV (ช่อง 22)
+https://live-us1.thaimomo.com/live-as/chNation-3/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TopNews.th" group-title="ทีวีดิจิทัล & ข่าว",Top News HD (ช่อง 77)
+https://live.topnews.co.th/hls/topnews_a_720.m3u8
+
+#EXTINF:-1 tvg-id="TSports7.th" group-title="กีฬาสด",T Sports 7 HD
+https://live-us1.thaimomo.com/live-as/chtsport-1/playlist.m3u8
+
+#EXTINF:-1 tvg-id="VipaTV.th" group-title="ทีวีดิจิทัล & ข่าว",VIPA TV (1080p)
+https://fastly.live.brightcove.com/1846248737588002042/ap-southeast-1/6075037809001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoibzRoaGc2LmVncmVzcy5zYjBmOGsiLCJhY2NvdW50X2lkIjoiNjA3NTAzNzgwOTAwMSIsImVobiI6ImZhc3RseS5saXZlLmJyaWdodGNvdmUuY29tIiwiaXNzIjoiYmxpdmUtcGxheWJhY2stc291cmNlLWFwaSIsInN1YiI6InBhdGhtYXB0b2tlbiIsImF1ZCI6WyI2MDc1MDM3ODA5MDAxIl0sImp0aSI6IjE4NDYyNDg3Mzc1ODgwMDIwNDIifQ.HbjGHxGv87ivAdsCtAdEDjj2SVCfRnCUMYWn2fCkVPY/playlist-hls.m3u8
+
+#EXTINF:-1 tvg-id="News1.th" group-title="ทีวีดิจิทัล & ข่าว",News 1 (นิวส์วัน)
+https://live-us1.thaimomo.com/live-as/chnews1-2/playlist.m3u8
+
+#EXTINF:-1 tvg-id="13SiamThai.th" group-title="ทีวีดิจิทัล & ข่าว",13 สยามไท (1080p)
+https://live.x2.co.th/live/13livetv-th.m3u8
+
+#EXTINF:-1 tvg-id="NBTChiangMai.th" group-title="ทีวีภูมิภาค",NBT TV เชียงใหม่
+https://cdn-edge.iiptvcdn.com/live_event/smil:4f6e-aa34-2034-5492-c82d.smil/playlist.m3u8
+
+#EXTINF:-1 tvg-id="LanthungTV.th" group-title="เคเบิล & เพลงลูกทุ่ง",ลานทุ่งทีวี (Lanthung TV)
+https://live-us1.thaimomo.com/live-as/chlantung-2/playlist.m3u8
+
+#EXTINF:-1 tvg-id="ZabbChannel.th" group-title="เคเบิล & เพลงลูกทุ่ง",แซ่บแชนแนล (Zabb Channel)
+https://vdo.plathong.net/flash7057/flash7057/playlist.m3u8
+
+#EXTINF:-1 tvg-id="BaanBaanTV.th" group-title="เคเบิล & เพลงลูกทุ่ง",บ้านบ้านทีวี 73
+https://vdo.plathong.net/live8794/live8794/playlist.m3u8
+
+#EXTINF:-1 tvg-id="CharoenCable.th" group-title="เคเบิล & เพลงลูกทุ่ง",เจริญเคเบิลทีวี 37
+http://www5.cabletv.co.th/StreamToCTV/cablechannel/playlist.m3u8
+
+#EXTINF:-1 tvg-id="RamaChannel.th" group-title="สาระ & สุขภาพ",Rama Channel (รามาแชนแนล)
+https://ramach.ddns.net/live/ramalive/index.m3u8
+
+#EXTINF:-1 tvg-id="STOU.th" group-title="สาระ & สุขภาพ",STOU Channel (มสธ. 720p)
+https://stream1.stou.ac.th/live/stou_720p/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E1" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 1
+https://cdn.mvshd.com/hls/ep-25715/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E2" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 2
+https://cdn.mvshd.com/hls/ep-25716/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E3" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 3
+https://cdn.mvshd.com/hls/ep-25717/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E4" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 4
+https://cdn.mvshd.com/hls/ep-25718/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E5" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 5
+https://cdn.mvshd.com/hls/ep-25719/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E6" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 6
+https://cdn.mvshd.com/hls/ep-25720/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E7" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 7
+https://cdn.mvshd.com/hls/ep-25721/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E8" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 8 (จบ)
+https://cdn.mvshd.com/hls/ep-25722/index.m3u8

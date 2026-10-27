@@ -1,167 +1,80 @@
 #EXTM3U
-#EXTINF:-1 tvg-id="" tvg-name="THAI - AMARIN 34 HD" tvg-logo="" group-title="Thailand",THAI - AMARIN 34 HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097190.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - GMM-ONEThai  HD" tvg-logo="" group-title="Thailand",THAI - GMM-ONEThai  HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097209.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - GMM25" tvg-logo="" group-title="Thailand",THAI - GMM25
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097210.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - Green channel" tvg-logo="" group-title="Thailand",THAI - Green channel
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097212.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LOOK THOONG TV HD" tvg-logo="" group-title="Thailand",THAI - LOOK THOONG TV HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097232.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - MCOT HD" tvg-logo="" group-title="Thailand",THAI - MCOT HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097235.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - NATION NEWS  HD" tvg-logo="" group-title="Thailand",THAI - NATION NEWS  HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097254.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - NBT HD" tvg-logo="" group-title="Thailand",THAI - NBT HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097255.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - PPTV HD" tvg-logo="https://go4.pw/ASIA/Thailand/PPTV.png" group-title="Thailand",THAI - PPTV HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097262.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - Thairath 32" tvg-logo="https://go4.pw/ASIA/Thailand/ThairathThai.png" group-title="Thailand",THAI - Thairath 32
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097274.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - THAI 8 HD" tvg-logo="https://go4.pw/ASIA/Thailand/THAI80.png" group-title="Thailand",THAI - THAI 8 HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097271.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - THAI PBS HD" tvg-logo="https://go4.pw/USA/PBS.png" group-title="Thailand",THAI - THAI PBS HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097273.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - True4uThai  HD" tvg-logo="https://go4.pw/ASIA/Thailand/True4uThai.png" group-title="Thailand",THAI - True4uThai  HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097277.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - TV3 SD" tvg-logo="https://go4.pw/SPAIN/TV3%20CATALAN.png" group-title="Thailand",THAI - TV3 SD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097278.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - WORK POINT HD" tvg-logo="https://go4.pw/ASIA/Thailand/WORK.png" group-title="Thailand",THAI - WORK POINT HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097286.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - White Channel" tvg-logo="https://go4.pw/ASIA/Thailand/White.png" group-title="Thailand",THAI - White Channel
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097285.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI -  NAT TV" tvg-logo="" group-title="Thailand",THAI -  NAT TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097276.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - UNIQUELY THAI" tvg-logo="https://go4.pw/ASIA/Thailand/UNIQUELY.png" group-title="Thailand",THAI - UNIQUELY THAI
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097283.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - MALIMAR LAO AND THAI MUSIC" tvg-logo="" group-title="Thailand",THAI - MALIMAR LAO AND THAI MUSIC
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097234.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - Joomusic" tvg-logo="" group-title="Thailand",THAI - Joomusic
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097207.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LAO AMERICAN" tvg-logo="" group-title="Thailand",THAI - LAO AMERICAN
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097220.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LAO CHAMPA TV 1" tvg-logo="" group-title="Thailand",THAI - LAO CHAMPA TV 1
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097221.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LAO CHAMPA TV 3" tvg-logo="" group-title="Thailand",THAI - LAO CHAMPA TV 3
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097222.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LAO NATIONAL TV 1" tvg-logo="" group-title="Thailand",THAI - LAO NATIONAL TV 1
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097223.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LAO NATIONAL TV 3" tvg-logo="" group-title="Thailand",THAI - LAO NATIONAL TV 3
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097224.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LAO PEOPLE POWER" tvg-logo="" group-title="Thailand",THAI - LAO PEOPLE POWER
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097225.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LAO PSTV" tvg-logo="" group-title="Thailand",THAI - LAO PSTV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097226.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LAO SV TV" tvg-logo="" group-title="Thailand",THAI - LAO SV TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097227.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LAO THAI TV" tvg-logo="" group-title="Thailand",THAI - LAO THAI TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097228.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LAO TV FREE ASIA" tvg-logo="" group-title="Thailand",THAI - LAO TV FREE ASIA
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097229.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LAOS PLANET TV" tvg-logo="" group-title="Thailand",THAI - LAOS PLANET TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097230.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - MV LAO" tvg-logo="" group-title="Thailand",THAI - MV LAO
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097237.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - OY LAO TV" tvg-logo="" group-title="Thailand",THAI - OY LAO TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097258.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - BAYON HD KHMER" tvg-logo="" group-title="Thailand",THAI - BAYON HD KHMER
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097196.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - BTV NEWS KHMER" tvg-logo="" group-title="Thailand",THAI - BTV NEWS KHMER
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097199.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - CTN KHMER" tvg-logo="" group-title="Thailand",THAI - CTN KHMER
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097201.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - CTV8 KHMER" tvg-logo="" group-title="Thailand",THAI - CTV8 KHMER
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097202.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - ETV KHMER" tvg-logo="https://go4.pw/ASIA/INDIAN/ETVHD.png" group-title="Thailand",THAI - ETV KHMER
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097206.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - MSJ TV KHMER" tvg-logo="" group-title="Thailand",THAI - MSJ TV KHMER
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097236.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - MY TV KHMER" tvg-logo="" group-title="Thailand",THAI - MY TV KHMER
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097252.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - TEA TV KHMER" tvg-logo="https://go4.pw/ASIA/Thailand/TEATV.png" group-title="Thailand",THAI - TEA TV KHMER
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097269.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - TV5 KHMER" tvg-logo="https://go4.pw/ASIA/Thailand/TV5.png" group-title="Thailand",THAI - TV5 KHMER
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097279.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - TV9 KHMER" tvg-logo="https://go4.pw/ASIA/Thailand/TV9.png" group-title="Thailand",THAI - TV9 KHMER
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097280.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - TVK KHMER" tvg-logo="https://go4.pw/ASIA/Thailand/KHMER.png" group-title="Thailand",THAI - TVK KHMER
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097281.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - CVA HMONG FRESNO" tvg-logo="" group-title="Thailand",THAI - CVA HMONG FRESNO
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097203.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - HMONG FRESNO TV" tvg-logo="" group-title="Thailand",THAI - HMONG FRESNO TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097213.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - HMONG LAO TV  HD" tvg-logo="" group-title="Thailand",THAI - HMONG LAO TV  HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097214.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - HMONG STAR TV" tvg-logo="" group-title="Thailand",THAI - HMONG STAR TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097215.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - HMONG USA TV" tvg-logo="" group-title="Thailand",THAI - HMONG USA TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097216.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - GOOD IDEA TV USA HD" tvg-logo="" group-title="Thailand",THAI - GOOD IDEA TV USA HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097191.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - ADL USA TV" tvg-logo="" group-title="Thailand",THAI - ADL USA TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097192.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - AIR TV" tvg-logo="" group-title="Thailand",THAI - AIR TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097193.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - SBT TV" tvg-logo="" group-title="Thailand",THAI - SBT TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097194.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - ASTVThai  HD" tvg-logo="" group-title="Thailand",THAI - ASTVThai  HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097195.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - Suwannabhumi TV" tvg-logo="https://go4.pw/ASIA/Thailand/Suwannabhumi.png" group-title="Thailand",THAI - Suwannabhumi TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097197.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - BRIAN TV" tvg-logo="" group-title="Thailand",THAI - BRIAN TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097198.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - CAMBODIA TV" tvg-logo="" group-title="Thailand",THAI - CAMBODIA TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097200.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - DAO LANE XANG" tvg-logo="" group-title="Thailand",THAI - DAO LANE XANG
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097204.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - Dopa Channel" tvg-logo="" group-title="Thailand",THAI - Dopa Channel
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097205.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - 69TVสื่อออนไลน์   HD" tvg-logo="" group-title="Thailand",THAI - 69TVสื่อออนไลน์   HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097208.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - Good Idea TV" tvg-logo="" group-title="Thailand",THAI - Good Idea TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097211.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - HOUNG FA" tvg-logo="" group-title="Thailand",THAI - HOUNG FA
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097217.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - ISTV" tvg-logo="" group-title="Thailand",THAI - ISTV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097218.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - KHOMSANH TV" tvg-logo="" group-title="Thailand",THAI - KHOMSANH TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097219.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LONE SINH LAO TV" tvg-logo="" group-title="Thailand",THAI - LONE SINH LAO TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097231.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - LS TV 1" tvg-logo="" group-title="Thailand",THAI - LS TV 1
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097233.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - MYANMAR MRTV" tvg-logo="" group-title="Thailand",THAI - MYANMAR MRTV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097253.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - NING TV" tvg-logo="" group-title="Thailand",THAI - NING TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097256.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - OH MUANG LAO HD" tvg-logo="" group-title="Thailand",THAI - OH MUANG LAO HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097257.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - PBSThai" tvg-logo="" group-title="Thailand",THAI - PBSThai
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097259.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - PNN TV HD" tvg-logo="" group-title="Thailand",THAI - PNN TV HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097260.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - PNTV" tvg-logo="" group-title="Thailand",THAI - PNTV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097261.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - SEA TV NEWS" tvg-logo="https://go4.pw/ASIA/Thailand/SEA.png" group-title="Thailand",THAI - SEA TV NEWS
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097263.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - SIENG KASEEP TV" tvg-logo="https://go4.pw/ASIA/Thailand/KASEEP.png" group-title="Thailand",THAI - SIENG KASEEP TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097265.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - SIENG KHAEN LAO TV" tvg-logo="https://go4.pw/ASIA/Thailand/KHAEN.png" group-title="Thailand",THAI - SIENG KHAEN LAO TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097266.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - TATV" tvg-logo="https://go4.pw/ASIA/Thailand/TATV.png" group-title="Thailand",THAI - TATV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097267.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - TEA TV HD" tvg-logo="https://go4.pw/ASIA/Thailand/TEATV.png" group-title="Thailand",THAI - TEA TV HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097268.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - Suwannabhumi TV" tvg-logo="https://go4.pw/ASIA/Thailand/Suwannabhumi.png" group-title="Thailand",THAI - Suwannabhumi TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097270.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - ThairathThai HD" tvg-logo="https://go4.pw/ASIA/Thailand/ThairathThai.png" group-title="Thailand",THAI - ThairathThai HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097275.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - TV3Cambodia HD" tvg-logo="https://go4.pw/ASIA/Thailand/TV3Cambodia.png" group-title="Thailand",THAI - TV3Cambodia HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097282.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - VATI LAO" tvg-logo="https://go4.pw/ASIA/Thailand/VATI.png" group-title="Thailand",THAI - VATI LAO
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097284.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI - Yateem TV" tvg-logo="" group-title="Thailand",THAI - Yateem TV
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097287.m3u8
-#EXTINF:-1 tvg-id="" tvg-name="THAI -THAI 5 HD" tvg-logo="https://go4.pw/ASIA/Thailand/THAI.png" group-title="Thailand",THAI -THAI 5 HD
-http://xurqeno.xyz:80/live/MAG221ARGP/MAGEX67WUA/1097288.m3u8
+
+# ========================================================
+# เพลย์ลิสต์รวมช่องเคเบิลทีวีไทย ข่าว กีฬา และซีรีส์ฮิต (ออนไลน์ 100%)
+# ========================================================
+
+#EXTINF:-1 tvg-id="3HD.th" group-title="ทีวีดิจิทัล & ข่าว",ช่อง 3 HD (33)
+https://live-us1.thaimomo.com/live-as/ch3hd-3/playlist.m3u8
+
+#EXTINF:-1 tvg-id="ThaiPBS.th" group-title="ทีวีดิจิทัล & ข่าว",Thai PBS HD (ช่อง 3)
+https://live-us1.thaimomo.com/live-as/chThaipbshd-2/playlist.m3u8
+
+#EXTINF:-1 tvg-id="True4U.th" group-title="ทีวีดิจิทัล & ข่าว",True4U (ช่อง 24)
+https://live-us1.thaimomo.com/live-as/chTrue4u-2/playlist.m3u8
+
+#EXTINF:-1 tvg-id="NBT2HD.th" group-title="ทีวีดิจิทัล & ข่าว",NBT 2 HD (ช่อง 2 กรมประชาสัมพันธ์)
+https://cdn-edge.iiptvcdn.com/live_event/smil:f180-054a-38d7-ce66-f7cf.smil/playlist.m3u8
+
+#EXTINF:-1 tvg-id="NationTV.th" group-title="ทีวีดิจิทัล & ข่าว",Nation TV (ช่อง 22)
+https://live-us1.thaimomo.com/live-as/chNation-3/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TopNews.th" group-title="ทีวีดิจิทัล & ข่าว",Top News HD (ช่อง 77)
+https://live.topnews.co.th/hls/topnews_a_720.m3u8
+
+#EXTINF:-1 tvg-id="TSports7.th" group-title="กีฬาสด",T Sports 7 HD
+https://live-us1.thaimomo.com/live-as/chtsport-1/playlist.m3u8
+
+#EXTINF:-1 tvg-id="VipaTV.th" group-title="ทีวีดิจิทัล & ข่าว",VIPA TV (1080p)
+https://fastly.live.brightcove.com/1846248737588002042/ap-southeast-1/6075037809001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoibzRoaGc2LmVncmVzcy5zYjBmOGsiLCJhY2NvdW50X2lkIjoiNjA3NTAzNzgwOTAwMSIsImVobiI6ImZhc3RseS5saXZlLmJyaWdodGNvdmUuY29tIiwiaXNzIjoiYmxpdmUtcGxheWJhY2stc291cmNlLWFwaSIsInN1YiI6InBhdGhtYXB0b2tlbiIsImF1ZCI6WyI2MDc1MDM3ODA5MDAxIl0sImp0aSI6IjE4NDYyNDg3Mzc1ODgwMDIwNDIifQ.HbjGHxGv87ivAdsCtAdEDjj2SVCfRnCUMYWn2fCkVPY/playlist-hls.m3u8
+
+#EXTINF:-1 tvg-id="News1.th" group-title="ทีวีดิจิทัล & ข่าว",News 1 (นิวส์วัน)
+https://live-us1.thaimomo.com/live-as/chnews1-2/playlist.m3u8
+
+#EXTINF:-1 tvg-id="13SiamThai.th" group-title="ทีวีดิจิทัล & ข่าว",13 สยามไท (1080p)
+https://live.x2.co.th/live/13livetv-th.m3u8
+
+#EXTINF:-1 tvg-id="NBTChiangMai.th" group-title="ทีวีภูมิภาค",NBT TV เชียงใหม่
+https://cdn-edge.iiptvcdn.com/live_event/smil:4f6e-aa34-2034-5492-c82d.smil/playlist.m3u8
+
+#EXTINF:-1 tvg-id="LanthungTV.th" group-title="เคเบิล & เพลงลูกทุ่ง",ลานทุ่งทีวี (Lanthung TV)
+https://live-us1.thaimomo.com/live-as/chlantung-2/playlist.m3u8
+
+#EXTINF:-1 tvg-id="ZabbChannel.th" group-title="เคเบิล & เพลงลูกทุ่ง",แซ่บแชนแนล (Zabb Channel)
+https://vdo.plathong.net/flash7057/flash7057/playlist.m3u8
+
+#EXTINF:-1 tvg-id="BaanBaanTV.th" group-title="เคเบิล & เพลงลูกทุ่ง",บ้านบ้านทีวี 73
+https://vdo.plathong.net/live8794/live8794/playlist.m3u8
+
+#EXTINF:-1 tvg-id="CharoenCable.th" group-title="เคเบิล & เพลงลูกทุ่ง",เจริญเคเบิลทีวี 37
+http://www5.cabletv.co.th/StreamToCTV/cablechannel/playlist.m3u8
+
+#EXTINF:-1 tvg-id="RamaChannel.th" group-title="สาระ & สุขภาพ",Rama Channel (รามาแชนแนล)
+https://ramach.ddns.net/live/ramalive/index.m3u8
+
+#EXTINF:-1 tvg-id="STOU.th" group-title="สาระ & สุขภาพ",STOU Channel (มสธ. 720p)
+https://stream1.stou.ac.th/live/stou_720p/playlist.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E1" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 1
+https://cdn.mvshd.com/hls/ep-25715/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E2" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 2
+https://cdn.mvshd.com/hls/ep-25716/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E3" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 3
+https://cdn.mvshd.com/hls/ep-25717/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E4" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 4
+https://cdn.mvshd.com/hls/ep-25718/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E5" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 5
+https://cdn.mvshd.com/hls/ep-25719/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E6" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 6
+https://cdn.mvshd.com/hls/ep-25720/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E7" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 7
+https://cdn.mvshd.com/hls/ep-25721/index.m3u8
+
+#EXTINF:-1 tvg-id="TerminalListS2E8" group-title="ซีรีส์แอ็กชัน (The Terminal List S2)",The Terminal List Season 2 - ตอนที่ 8 (จบ)
+https://cdn.mvshd.com/hls/ep-25722/index.m3u8
